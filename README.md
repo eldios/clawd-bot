@@ -137,14 +137,19 @@ automation away - no extra firmware work.
 - Anthropic status-page indicator
 - Stack-chan body features: servo gestures, LEDs, and friends
 
-## Credits
+## Acknowledgements
 
-- Data mechanism inspired by
-  [claude-usage-stick](https://github.com/oauramos/claude-usage-stick)
-- Desk-distance UX inspired by
-  [Clawdmeter](https://github.com/HermannBjorgvin/Clawdmeter)
-- CoreS3 hardware support via
-  [M5Stack's official ESPHome components](https://github.com/m5stack/esphome-yaml)
+This project stands on the shoulders of two lovely projects - thank you:
+
+- [claude-usage-stick](https://github.com/oauramos/claude-usage-stick) by
+  @oauramos - pioneered the standalone approach and the rate-limit-header
+  probe this project uses.
+- [Clawdmeter](https://github.com/HermannBjorgvin/Clawdmeter) by
+  @HermannBjorgvin - the desk-distance UX this project chases, and the
+  proof that a Claude usage meter belongs on every desk.
+
+Hardware support comes from
+[M5Stack's official ESPHome components](https://github.com/m5stack/esphome-yaml).
 
 ## License
 
