@@ -1,0 +1,35 @@
+# clawd-bot on the M5StickC Plus with the Joystick Hat: same minimal UI
+# as the bare stick, plus joystick press = refresh and Y-axis = brightness.
+
+substitutions:
+  name: clawd-bot-stick
+  friendly_name: Clawd Bot Stick Joy
+  # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
+  claude_token: "SET_ME"
+  # Seconds between usage polls; the footer shows the resulting req/day.
+  poll_interval: "120"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  min_version: 2026.4.0
+  on_boot:
+    - priority: 600
+      then:
+        - light.turn_on:
+            id: lcd_backlight
+            brightness: 80%
+
+esp32:
+  variant: esp32
+  flash_size: 4MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+
+packages:
+  common: !include ../packages/common.yaml
+  hardware: !include ../packages/hardware-m5stickc-plus.yaml
+  input: !include ../packages/input-joystick-hat.yaml
+  poller: !include ../packages/usage-poller.yaml
+  ui: !include ../packages/ui-240x135-minimal.yaml

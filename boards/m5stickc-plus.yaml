@@ -1,0 +1,42 @@
+# clawd-bot on the M5StickC Plus: ESP32-PICO-D4, 4MB flash, no PSRAM,
+# 1.14" 240x135 LCD, no touch. Minimal number-first UI; the front button
+# (BtnA) forces a refresh. Same shared usage engine and substitutions
+# contract as every other board.
+
+substitutions:
+  name: clawd-bot-stick
+  friendly_name: Clawd Bot Stick
+  # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
+  claude_token: "SET_ME"
+  # Seconds between usage polls; the footer shows the resulting req/day.
+  poll_interval: "120"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  min_version: 2026.4.0
+  on_boot:
+    # Panel logic rail first - a fixed-voltage AXP192 output is not
+    # switched on automatically; without it the panel stays dark no
+    # matter what the backlight does.
+    - priority: 700
+      then:
+        - output.turn_on: lcd_logic_power
+    - priority: 600
+      then:
+        - light.turn_on:
+            id: lcd_backlight
+            brightness: 80%
+
+esp32:
+  variant: esp32
+  flash_size: 4MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+
+packages:
+  common: !include ../packages/common.yaml
+  hardware: !include ../packages/hardware-m5stickc-plus.yaml
+  poller: !include ../packages/usage-poller.yaml
+  ui: !include ../packages/ui-240x135-minimal.yaml

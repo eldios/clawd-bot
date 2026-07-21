@@ -1,0 +1,14 @@
+# Local development entry point for the M5StickC Plus - wifi + token from
+# secrets.yaml. See README.md for the ESPHome Builder adoption path.
+
+substitutions:
+  claude_token: !secret claude_token
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    password: !secret ap_password
+
+packages:
+  board: !include boards/m5stickc-plus.yaml

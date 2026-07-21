@@ -1,0 +1,96 @@
+# Minimal LVGL UI for small landscape LCDs (240x135, no touch): the 5h
+# number as big as the panel allows, a thin 7d bar, reset countdown and
+# polling cost. Features are dropped, not shrunk - small screens show
+# less, readably.
+
+font:
+  - file: "gfonts://Figtree@700"
+    id: font_hero
+    size: 64
+    glyphs: "0123456789%?- "
+  - file: "gfonts://Figtree@400"
+    id: font_small
+    size: 13
+
+lvgl:
+  id: main_lvgl
+  displays: [main_lcd]
+  buffer_size: 25%
+  # Panels in this class are portrait-native 135x240; render landscape.
+  rotation: 270
+  pages:
+    - id: main_page
+      bg_color: 0x000000
+      widgets:
+        - label:
+            id: lbl_hero
+            align: LEFT_MID
+            x: 8
+            y: -10
+            text_font: font_hero
+            text_color: 0xE8E4DC
+            text: "--%"
+        - label:
+            id: lbl_5h
+            align: TOP_RIGHT
+            x: -8
+            y: 14
+            text_font: font_small
+            text_color: 0x9A948A
+            text: "5h reset --"
+        - label:
+            id: lbl_7d
+            align: TOP_RIGHT
+            x: -8
+            y: 34
+            text_font: font_small
+            text_color: 0x9A948A
+            text: "7d --%"
+        - bar:
+            id: bar_7d
+            align: TOP_RIGHT
+            x: -8
+            y: 54
+            width: 70
+            height: 6
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x2A2A2A
+            indicator:
+              bg_color: 0x6A9BCC
+        - label:
+            id: lbl_footer
+            align: BOTTOM_LEFT
+            x: 8
+            y: -4
+            text_font: font_small
+            text_color: 0x6A655D
+            text: "avvio..."
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          char buf[48];
+          if (!isnan(id(usage_5h).state)) {
+            snprintf(buf, sizeof(buf), "%.0f%%", id(usage_5h).state);
+            lv_label_set_text(id(lbl_hero), buf);
+          }
+          if (!isnan(id(usage_7d).state)) {
+            lv_bar_set_value(id(bar_7d), (int) id(usage_7d).state, LV_ANIM_ON);
+            lv_label_set_text_fmt(id(lbl_7d), "7d %d%%", (int) id(usage_7d).state);
+          }
+          auto now = id(sntp_time).now();
+          auto fmt_eta = [&](long reset_epoch, char *out, size_t n) {
+            if (reset_epoch <= 0 || !now.is_valid()) { snprintf(out, n, "--"); return; }
+            long left = reset_epoch - (long) now.timestamp;
+            if (left < 0) left = 0;
+            snprintf(out, n, "%ldh%02ldm", left / 3600, (left % 3600) / 60);
+          };
+          char eta[24];
+          fmt_eta(id(reset_5h_epoch), eta, sizeof(eta));
+          lv_label_set_text_fmt(id(lbl_5h), "5h reset %s", eta);
+          int reqs_per_day = 86400 / ${poll_interval};
+          const char *st = id(usage_status).has_state() ? id(usage_status).state.c_str() : "in attesa";
+          lv_label_set_text_fmt(id(lbl_footer), "%s | ~%d req/g", st, reqs_per_day);
