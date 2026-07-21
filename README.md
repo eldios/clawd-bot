@@ -33,7 +33,7 @@ and a UI sized to what the device can do. All boards update the same way
 |---|---|---|---|
 | [M5Stack CoreS3](https://docs.m5stack.com/en/core/CoreS3) / [Stack-chan](https://docs.m5stack.com/en/StackChan/) | `boards/m5stack-cores3.yaml` | supported | rich 320x240 touch: hero number, bars, countdowns, touch refresh |
 | M5Stack CoreS3 SE | `boards/m5stack-cores3.yaml` | untested, should work | same as CoreS3 (no battery gauge) |
-| [M5StickC Plus](https://docs.m5stack.com/en/core/m5stickc_plus) | `boards/m5stickc-plus.yaml` | supported | minimal 240x135: hero number, 7d bar, countdown; front button = refresh |
+| [M5StickC Plus](https://docs.m5stack.com/en/core/m5stickc_plus) | `boards/m5stickc-plus.yaml` | supported, tested on hardware | minimal 240x135: hero number, 7d bar, countdown; front button = refresh |
 | M5StickC Plus + [Joystick Hat](https://docs.m5stack.com/en/hat/hat-joystick) | `boards/m5stickc-plus-joy.yaml` | supported | minimal + joystick: press = refresh, Y-axis = brightness |
 | M5StickC Plus2 | planned | - | minimal (same UI class) |
 
@@ -107,6 +107,22 @@ esphome run clawd-bot.yaml             # first time over USB, then OTA
 ```
 
 Nix users: `nix develop` provides `esphome` and `esptool`.
+
+## Languages
+
+UI strings default to English. Ready-made packs live in `lang/`
+(`it`, `de`, `fr`, `es`): include one after the board package, or override
+individual `str_*` substitutions directly in your config (top-level
+substitutions always win).
+
+```yaml
+packages:
+  clawd_bot:
+    url: https://github.com/eldios/clawd-bot
+    ref: v0.0.1
+    files: [boards/m5stack-cores3.yaml, lang/it.yaml]
+    refresh: 1d
+```
 
 ## Home Assistant integration
 
