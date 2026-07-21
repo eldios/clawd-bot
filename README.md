@@ -1,5 +1,9 @@
 # clawd-bot
 
+<p align="center">
+  <img src="assets/logo.png" alt="clawd-bot logo" width="256"/>
+</p>
+
 A standalone Claude Code usage monitor for the desk: big screen, readable
 from across the room, no host software. It runs on the M5Stack CoreS3 (the
 head unit of the [Stack-chan](https://docs.m5stack.com/en/StackChan/) robot
