@@ -13,4 +13,4 @@ wifi:
 
 packages:
   board: !include boards/m5stack-cores3.yaml
-  lang: !include lang/it.yaml
+  # lang: !include lang/it.yaml
