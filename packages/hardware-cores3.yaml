@@ -1,0 +1,94 @@
+# M5Stack CoreS3 hardware: PMU, IO expander, display, touch, backlight.
+# Schema taken from M5Stack's official ESPHome configs
+# (github://m5stack/esphome-yaml, common/cores3-satellite-base.yaml).
+
+i2c:
+  - id: bsp_bus
+    sda: GPIO12
+    scl: GPIO11
+
+spi:
+  - id: spi_bus
+    clk_pin: GPIO36
+    mosi_pin: GPIO37
+
+external_components:
+  - source: github://m5stack/esphome-yaml/components
+    components: [axp2101, aw9523b]
+    refresh: 1d
+
+axp2101:
+  id: axp2101_pmu
+  i2c_id: bsp_bus
+
+aw9523b:
+  id: aw9523b_hub
+  i2c_id: bsp_bus
+  p0_drive_mode: PUSH_PULL
+
+output:
+  # LCD power doubles as backlight: AXP2101 DLDO1 rail, 2.6-3.3 V.
+  - platform: axp2101
+    type: range
+    channel: DLDO1
+    id: lcd_backlight_output
+    min_voltage: 2600
+    max_voltage: 3300
+
+light:
+  - platform: monochromatic
+    id: lcd_backlight
+    name: "LCD Backlight"
+    output: lcd_backlight_output
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 250ms
+
+sensor:
+  - platform: axp2101
+    id: axp2101_sensor
+    battery_level:
+      name: "Battery Level"
+      id: battery_level
+    battery_charging:
+      name: "Battery Charging"
+      id: battery_charging
+
+# Forces the binary_sensor component into the build: the M5Stack axp2101
+# component includes its headers unconditionally but declares no AUTO_LOAD.
+binary_sensor:
+  - platform: gpio
+    id: touch_int_p1_2
+    internal: true
+    pin:
+      aw9523b_id: aw9523b_hub
+      number: 10
+
+display:
+  - platform: mipi_spi
+    id: main_lcd
+    model: M5CORE
+    dc_pin: GPIO35
+    reset_pin:
+      aw9523b_id: aw9523b_hub
+      number: 9
+    cs_pin:
+      number: GPIO3
+      ignore_strapping_warning: true
+    data_rate: 40MHz
+    invert_colors: true
+    # LVGL owns the framebuffer
+    update_interval: never
+    auto_clear_enabled: false
+
+touchscreen:
+  - platform: ft63x6
+    id: main_touch
+    i2c_id: bsp_bus
+    reset_pin:
+      aw9523b_id: aw9523b_hub
+      number: 0
+    calibration:
+      x_min: 0
+      x_max: 320
+      y_min: 0
+      y_max: 240

@@ -1,0 +1,127 @@
+# LVGL UI - the point of this project: readable from desk distance.
+# Hero number = 5h utilization; bars for 5h/7d; reset countdowns; footer
+# with status + battery + the polling cost (req/day) for transparency.
+
+font:
+  - file: "gfonts://Figtree@700"
+    id: font_hero
+    size: 96
+    glyphs: "0123456789%?- "
+  - file: "gfonts://Figtree@600"
+    id: font_mid
+    size: 26
+  - file: "gfonts://Figtree@400"
+    id: font_small
+    size: 16
+
+lvgl:
+  id: main_lvgl
+  displays: [main_lcd]
+  touchscreens: [main_touch]
+  buffer_size: 25%
+  pages:
+    - id: main_page
+      bg_color: 0x000000
+      widgets:
+        - label:
+            id: lbl_hero
+            align: TOP_MID
+            y: 14
+            text_font: font_hero
+            text_color: 0xE8E4DC
+            text: "--%"
+        - bar:
+            id: bar_5h
+            align: TOP_MID
+            y: 124
+            width: 280
+            height: 14
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x2A2A2A
+            indicator:
+              bg_color: 0xD97757
+        - label:
+            id: lbl_5h
+            align: TOP_MID
+            y: 142
+            text_font: font_small
+            text_color: 0x9A948A
+            text: "5h - reset --:--"
+        - bar:
+            id: bar_7d
+            align: TOP_MID
+            y: 166
+            width: 280
+            height: 14
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x2A2A2A
+            indicator:
+              bg_color: 0x6A9BCC
+        - label:
+            id: lbl_7d
+            align: TOP_MID
+            y: 184
+            text_font: font_small
+            text_color: 0x9A948A
+            text: "7d - reset --/--"
+        - label:
+            id: lbl_footer
+            align: BOTTOM_LEFT
+            x: 8
+            y: -6
+            text_font: font_small
+            text_color: 0x6A655D
+            text: "avvio..."
+        - button:
+            id: btn_refresh
+            align: BOTTOM_RIGHT
+            x: -8
+            y: -4
+            width: 90
+            height: 34
+            widgets:
+              - label:
+                  text_font: font_small
+                  text: "Aggiorna"
+                  align: CENTER
+            on_click:
+              - script.execute: poll_usage
+
+interval:
+  # Refresh labels/bars once a second (countdowns tick, cheap on LVGL).
+  - interval: 1s
+    then:
+      - lambda: |-
+          char buf[48];
+          if (!isnan(id(usage_5h).state)) {
+            snprintf(buf, sizeof(buf), "%.0f%%", id(usage_5h).state);
+            lv_label_set_text(id(lbl_hero), buf);
+            lv_bar_set_value(id(bar_5h), (int) id(usage_5h).state, LV_ANIM_ON);
+          }
+          if (!isnan(id(usage_7d).state)) {
+            lv_bar_set_value(id(bar_7d), (int) id(usage_7d).state, LV_ANIM_ON);
+          }
+          auto now = id(sntp_time).now();
+          auto fmt_eta = [&](long reset_epoch, char *out, size_t n) {
+            if (reset_epoch <= 0 || !now.is_valid()) { snprintf(out, n, "--"); return; }
+            long left = reset_epoch - (long) now.timestamp;
+            if (left < 0) left = 0;
+            snprintf(out, n, "%ldh %02ldm", left / 3600, (left % 3600) / 60);
+          };
+          char eta[24];
+          fmt_eta(id(reset_5h_epoch), eta, sizeof(eta));
+          lv_label_set_text_fmt(id(lbl_5h), "5h - reset tra %s", eta);
+          fmt_eta(id(reset_7d_epoch), eta, sizeof(eta));
+          lv_label_set_text_fmt(id(lbl_7d), "7d - reset tra %s", eta);
+          // Footer: status + battery + polling cost (~1 token per request).
+          int reqs_per_day = 86400 / ${poll_interval};
+          const char *st = id(usage_status).has_state() ? id(usage_status).state.c_str() : "in attesa dati";
+          int batt = isnan(id(battery_level).state) ? -1 : (int) id(battery_level).state;
+          if (batt >= 0)
+            lv_label_set_text_fmt(id(lbl_footer), "%s | batt %d%% | poll ${poll_interval}s (~%d req/g)", st, batt, reqs_per_day);
+          else
+            lv_label_set_text_fmt(id(lbl_footer), "%s | poll ${poll_interval}s (~%d req/g)", st, reqs_per_day);

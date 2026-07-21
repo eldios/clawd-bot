@@ -1,0 +1,118 @@
+# Usage engine: probe POST to /v1/messages, read the unified rate-limit
+# response headers. Mechanism proven by claude-usage-stick and the Clawdmeter
+# daemon; the cleaner GET api/oauth/usage endpoint rejects long-lived
+# setup-tokens with 403 (tested 2026-07-21), so headers it is.
+
+http_request:
+  id: http_client
+  timeout: 10s
+  watchdog_timeout: 30s
+
+globals:
+  - id: reset_5h_epoch
+    type: long
+    restore_value: no
+    initial_value: "0"
+  - id: reset_7d_epoch
+    type: long
+    restore_value: no
+    initial_value: "0"
+  - id: last_poll_ok
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+sensor:
+  - platform: template
+    id: usage_5h
+    name: "Claude 5h Utilization"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: never
+  - platform: template
+    id: usage_7d
+    name: "Claude 7d Utilization"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: never
+
+text_sensor:
+  - platform: template
+    id: usage_status
+    name: "Claude Limit Status"
+    update_interval: never
+
+script:
+  - id: poll_usage
+    mode: single
+    then:
+      - http_request.post:
+          url: https://api.anthropic.com/v1/messages
+          request_headers:
+            Authorization: "Bearer ${claude_token}"
+            anthropic-version: "2023-06-01"
+            anthropic-beta: "oauth-2025-04-20"
+            Content-Type: application/json
+            User-Agent: "claude-code/2.1.5"
+          body: '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}'
+          capture_response: false
+          collect_headers:
+            - anthropic-ratelimit-unified-5h-utilization
+            - anthropic-ratelimit-unified-5h-reset
+            - anthropic-ratelimit-unified-7d-utilization
+            - anthropic-ratelimit-unified-7d-reset
+            - anthropic-ratelimit-unified-status
+          on_response:
+            then:
+              - lambda: |-
+                  // Header values: utilization 0..1 (float), reset RFC3339 or epoch.
+                  auto parse_ts = [](const std::string &v) -> long {
+                    if (v.empty()) return 0;
+                    if (v.find('T') == std::string::npos) return atol(v.c_str());
+                    struct tm tm{};
+                    if (strptime(v.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) == nullptr) return 0;
+                    // UTC epoch without timegm (absent from ESP-IDF newlib):
+                    // days-from-civil, then seconds.
+                    int y = tm.tm_year + 1900, m = tm.tm_mon + 1, d = tm.tm_mday;
+                    y -= m <= 2;
+                    long era = (y >= 0 ? y : y - 399) / 400;
+                    unsigned yoe = (unsigned) (y - era * 400);
+                    unsigned doy = (153u * (unsigned) (m + (m > 2 ? -3 : 9)) + 2u) / 5u + (unsigned) d - 1u;
+                    unsigned doe = yoe * 365u + yoe / 4u - yoe / 100u + doy;
+                    long days = era * 146097L + (long) doe - 719468L;
+                    return days * 86400L + tm.tm_hour * 3600L + tm.tm_min * 60L + tm.tm_sec;
+                  };
+                  if (response->status_code == 200) {
+                    std::string u5 = response->get_response_header("anthropic-ratelimit-unified-5h-utilization");
+                    std::string u7 = response->get_response_header("anthropic-ratelimit-unified-7d-utilization");
+                    std::string r5 = response->get_response_header("anthropic-ratelimit-unified-5h-reset");
+                    std::string r7 = response->get_response_header("anthropic-ratelimit-unified-7d-reset");
+                    std::string st = response->get_response_header("anthropic-ratelimit-unified-status");
+                    if (!u5.empty()) id(usage_5h).publish_state(atof(u5.c_str()) * 100.0f);
+                    if (!u7.empty()) id(usage_7d).publish_state(atof(u7.c_str()) * 100.0f);
+                    id(reset_5h_epoch) = parse_ts(r5);
+                    id(reset_7d_epoch) = parse_ts(r7);
+                    id(usage_status).publish_state(st.empty() ? "ok" : st);
+                    id(last_poll_ok) = true;
+                  } else if (response->status_code == 401 || response->status_code == 403) {
+                    id(usage_status).publish_state("token scaduto/invalido");
+                    id(last_poll_ok) = false;
+                  } else {
+                    id(usage_status).publish_state("HTTP " + to_string(response->status_code));
+                    id(last_poll_ok) = false;
+                  }
+          on_error:
+            then:
+              - lambda: |-
+                  id(usage_status).publish_state("errore rete");
+                  id(last_poll_ok) = false;
+
+interval:
+  - interval: ${poll_interval}s
+    startup_delay: 15s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - script.execute: poll_usage
