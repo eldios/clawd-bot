@@ -1,3 +1,5 @@
 secrets.yaml
 .esphome/
 __pycache__/
+# Local working notes / specs - never part of the published history
+docs/

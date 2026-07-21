@@ -1,47 +1,9 @@
-# clawd-bot - standalone Claude usage monitor for M5Stack CoreS3 / Stack-chan.
-# Polls Anthropic's rate-limit headers directly over WiFi; no host daemon.
-#
-# Quick start (see README.md):
-#   cp secrets.example.yaml secrets.yaml   # fill wifi + claude_token
-#   esphome run clawd-bot.yaml
+# Local development entry point: wifi + token from secrets.yaml.
+# End users adopting via the ESPHome builder should import
+# clawd-bot.package.yaml instead - see README.md.
 
 substitutions:
-  name: clawd-bot
-  friendly_name: Clawd Bot
-  # Seconds between usage polls. Each poll costs one ~1-token probe request;
-  # the UI shows the resulting requests/day so the cost is never a surprise.
-  poll_interval: "120"
   claude_token: !secret claude_token
-
-esphome:
-  name: ${name}
-  friendly_name: ${friendly_name}
-  min_version: 2026.4.0
-  on_boot:
-    - priority: 600
-      then:
-        - light.turn_on:
-            id: lcd_backlight
-            brightness: 80%
-
-esp32:
-  variant: esp32s3
-  flash_size: 16MB
-  cpu_frequency: 240MHz
-  framework:
-    type: esp-idf
-    sdkconfig_options:
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
-      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
-      CONFIG_SPIRAM_RODATA: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: "y"
-      CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
-      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"
-
-psram:
-  mode: quad
-  speed: 80MHz
 
 wifi:
   ssid: !secret wifi_ssid
@@ -49,21 +11,5 @@ wifi:
   ap:
     password: !secret ap_password
 
-captive_portal:
-
-api:
-
-ota:
-  - platform: esphome
-
-logger:
-  level: INFO
-
-time:
-  - platform: sntp
-    id: sntp_time
-
 packages:
-  hardware: !include packages/hardware-cores3.yaml
-  poller: !include packages/usage-poller.yaml
-  ui: !include packages/ui.yaml
+  clawd_bot: !include clawd-bot.package.yaml

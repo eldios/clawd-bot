@@ -1,0 +1,61 @@
+# clawd-bot - remote-importable ESPHome package.
+# Do NOT use !secret here: secrets resolve in the importing user's config.
+# Everything user-specific arrives via substitutions (see README).
+
+substitutions:
+  name: clawd-bot
+  friendly_name: Clawd Bot
+  # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
+  claude_token: "SET_ME"
+  # Seconds between usage polls. Each poll is one ~1-token probe request;
+  # the UI footer shows the resulting requests/day so the cost is visible.
+  poll_interval: "120"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  min_version: 2026.4.0
+  on_boot:
+    - priority: 600
+      then:
+        - light.turn_on:
+            id: lcd_backlight
+            brightness: 80%
+
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
+      CONFIG_SPIRAM_RODATA: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: "y"
+      CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"
+
+psram:
+  mode: quad
+  speed: 80MHz
+
+captive_portal:
+
+api:
+
+ota:
+  - platform: esphome
+
+logger:
+  level: INFO
+
+time:
+  - platform: sntp
+    id: sntp_time
+
+packages:
+  hardware: !include packages/hardware-cores3.yaml
+  poller: !include packages/usage-poller.yaml
+  ui: !include packages/ui.yaml
