@@ -1,5 +1,20 @@
 # Board-agnostic services shared by every clawd-bot device.
 
+# UI strings - English defaults. Override any of them in your own config,
+# or include one of the ready-made packs from lang/ (it, de, fr, es).
+substitutions:
+  str_waiting: "waiting for data"
+  str_refreshing: "updating..."
+  str_refresh_btn: "Refresh"
+  str_resets_in: "resets in"
+  str_net_error: "network error"
+  str_token_error: "token expired/invalid"
+  str_status_ok: "ok"
+  str_status_warning: "near limit"
+  str_status_limit: "limit reached"
+  str_battery: "bat"
+  str_tok_day: "tok/day"
+
 captive_portal:
 
 api:

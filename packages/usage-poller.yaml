@@ -21,6 +21,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: poll_in_flight
+    type: bool
+    restore_value: no
+    initial_value: "false"
 
 sensor:
   - platform: template
@@ -46,6 +50,7 @@ script:
   - id: poll_usage
     mode: single
     then:
+      - lambda: "id(poll_in_flight) = true;"
       - http_request.post:
           url: https://api.anthropic.com/v1/messages
           request_headers:
@@ -92,20 +97,26 @@ script:
                     if (!u7.empty()) id(usage_7d).publish_state(atof(u7.c_str()) * 100.0f);
                     id(reset_5h_epoch) = parse_ts(r5);
                     id(reset_7d_epoch) = parse_ts(r7);
-                    id(usage_status).publish_state(st.empty() ? "ok" : st);
+                    // Localized display mapping for the unified status header.
+                    if (st == "allowed")              id(usage_status).publish_state("${str_status_ok}");
+                    else if (st == "allowed_warning") id(usage_status).publish_state("${str_status_warning}");
+                    else if (st == "rejected")        id(usage_status).publish_state("${str_status_limit}");
+                    else                              id(usage_status).publish_state(st.empty() ? "${str_status_ok}" : st);
                     id(last_poll_ok) = true;
                   } else if (response->status_code == 401 || response->status_code == 403) {
-                    id(usage_status).publish_state("token scaduto/invalido");
+                    id(usage_status).publish_state("${str_token_error}");
                     id(last_poll_ok) = false;
                   } else {
                     id(usage_status).publish_state("HTTP " + to_string(response->status_code));
                     id(last_poll_ok) = false;
                   }
+                  id(poll_in_flight) = false;
           on_error:
             then:
               - lambda: |-
-                  id(usage_status).publish_state("errore rete");
+                  id(usage_status).publish_state("${str_net_error}");
                   id(last_poll_ok) = false;
+                  id(poll_in_flight) = false;
 
 interval:
   - interval: ${poll_interval}s

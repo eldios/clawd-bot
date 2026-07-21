@@ -22,11 +22,28 @@ lvgl:
     - id: main_page
       bg_color: 0x000000
       widgets:
+        # --- top status strip: status left, battery right ---
+        - label:
+            id: lbl_status
+            align: TOP_LEFT
+            x: 8
+            y: 2
+            text_font: font_small
+            text_color: 0x9A948A
+            text: "${str_waiting}"
+        - label:
+            id: lbl_batt
+            align: TOP_RIGHT
+            x: -8
+            y: 2
+            text_font: font_small
+            text_color: 0x9A948A
+            text: ""
         - label:
             id: lbl_hero
             align: LEFT_MID
             x: 8
-            y: -10
+            y: 2
             text_font: font_hero
             text_color: 0xE8E4DC
             text: "--%"
@@ -34,15 +51,15 @@ lvgl:
             id: lbl_5h
             align: TOP_RIGHT
             x: -8
-            y: 14
+            y: 24
             text_font: font_small
             text_color: 0x9A948A
-            text: "5h reset --"
+            text: "5h --"
         - label:
             id: lbl_7d
             align: TOP_RIGHT
             x: -8
-            y: 34
+            y: 44
             text_font: font_small
             text_color: 0x9A948A
             text: "7d --%"
@@ -50,7 +67,7 @@ lvgl:
             id: bar_7d
             align: TOP_RIGHT
             x: -8
-            y: 54
+            y: 64
             width: 70
             height: 6
             min_value: 0
@@ -66,7 +83,7 @@ lvgl:
             y: -4
             text_font: font_small
             text_color: 0x6A655D
-            text: "avvio..."
+            text: "${str_waiting}"
 
 interval:
   - interval: 1s
@@ -82,15 +99,28 @@ interval:
             lv_label_set_text_fmt(id(lbl_7d), "7d %d%%", (int) id(usage_7d).state);
           }
           auto now = id(sntp_time).now();
+          // Human-friendly countdown: days+hours over 48h, hours+minutes
+          // over 1h, minutes only below.
           auto fmt_eta = [&](long reset_epoch, char *out, size_t n) {
             if (reset_epoch <= 0 || !now.is_valid()) { snprintf(out, n, "--"); return; }
             long left = reset_epoch - (long) now.timestamp;
             if (left < 0) left = 0;
-            snprintf(out, n, "%ldh%02ldm", left / 3600, (left % 3600) / 60);
+            if (left >= 48 * 3600)     snprintf(out, n, "%ldd %ldh", left / 86400, (left % 86400) / 3600);
+            else if (left >= 3600)     snprintf(out, n, "%ldh %02ldm", left / 3600, (left % 3600) / 60);
+            else                       snprintf(out, n, "%ldm", left / 60);
           };
           char eta[24];
           fmt_eta(id(reset_5h_epoch), eta, sizeof(eta));
-          lv_label_set_text_fmt(id(lbl_5h), "5h reset %s", eta);
-          int reqs_per_day = 86400 / ${poll_interval};
-          const char *st = id(usage_status).has_state() ? id(usage_status).state.c_str() : "in attesa";
-          lv_label_set_text_fmt(id(lbl_footer), "%s | ~%d req/g", st, reqs_per_day);
+          lv_label_set_text_fmt(id(lbl_5h), "5h %s", eta);
+          // Top strip: refreshing state wins, then last status; battery right.
+          if (id(poll_in_flight)) {
+            lv_label_set_text(id(lbl_status), "${str_refreshing}");
+          } else {
+            const char *st = id(usage_status).has_state() ? id(usage_status).state.c_str() : "${str_waiting}";
+            lv_label_set_text(id(lbl_status), st);
+          }
+          int batt = isnan(id(battery_level).state) ? -1 : (int) id(battery_level).state;
+          if (batt >= 0) lv_label_set_text_fmt(id(lbl_batt), "${str_battery} %d%%", batt);
+          else           lv_label_set_text(id(lbl_batt), "");
+          int toks_per_day = 86400 / ${poll_interval};
+          lv_label_set_text_fmt(id(lbl_footer), "poll ${poll_interval}s | ~%d ${str_tok_day}", toks_per_day);
