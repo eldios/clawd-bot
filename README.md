@@ -61,20 +61,21 @@ never leaves the device except toward api.anthropic.com over TLS.
    claude setup-token
    ```
 
-2. In the ESPHome Builder, add these secrets (Secrets editor):
+2. In the Builder's **Secrets** editor add one entry (your WiFi secrets
+   are usually already there from the wizard):
 
    ```yaml
-   wifi_ssid: "YourWiFi"
-   wifi_password: "YourPassword"
-   ap_password: "clawd-bot"
    claude_token: "sk-ant-oat01-..."
    ```
 
-3. Create a new device with this config:
+3. Create the device with the **New Device** wizard as usual (pick your
+   board or any ESP32-S3 entry - our package overrides what matters).
+   The wizard generates a YAML with `esphome:`, `api:`, `ota:`, `wifi:`
+   and `captive_portal:` blocks. **Keep all of them**, and paste this at
+   the bottom of the file:
 
    ```yaml
    substitutions:
-     name: clawd-bot
      claude_token: !secret claude_token
      # poll_interval: "120"   # optional override, seconds
 
@@ -82,17 +83,14 @@ never leaves the device except toward api.anthropic.com over TLS.
      clawd_bot:
        url: https://github.com/eldios/clawd-bot
        ref: v0.0.1
-       files: [boards/m5stack-cores3.yaml]
+       files: [boards/m5stack-cores3.yaml]   # pick your board from the table
        refresh: 1d
-
-   wifi:
-     ssid: !secret wifi_ssid
-     password: !secret wifi_password
-     ap:
-       password: !secret ap_password
    ```
 
-4. First install: connect the CoreS3 over USB and use "Install via USB"
+   To use a translated UI, add the language pack to the same list:
+   `files: [boards/m5stack-cores3.yaml, lang/it.yaml]`.
+
+4. First install: connect the device over USB and use "Install via USB"
    (or [web.esphome.io](https://web.esphome.io) from any browser).
 5. Updates: bump `ref:` to the new release tag and hit Install - it goes
    over-the-air, no cable needed.
@@ -111,18 +109,9 @@ Nix users: `nix develop` provides `esphome` and `esptool`.
 ## Languages
 
 UI strings default to English. Ready-made packs live in `lang/`
-(`it`, `de`, `fr`, `es`): include one after the board package, or override
-individual `str_*` substitutions directly in your config (top-level
-substitutions always win).
-
-```yaml
-packages:
-  clawd_bot:
-    url: https://github.com/eldios/clawd-bot
-    ref: v0.0.1
-    files: [boards/m5stack-cores3.yaml, lang/it.yaml]
-    refresh: 1d
-```
+(`it`, `de`, `fr`, `es`): add one to the `files:` list after the board
+entry (see Quick start), or override individual `str_*` substitutions
+directly in your config (top-level substitutions always win).
 
 ## Home Assistant integration
 

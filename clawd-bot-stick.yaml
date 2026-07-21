@@ -13,3 +13,10 @@ wifi:
 packages:
   board: !include boards/m5stickc-plus.yaml
   # lang: !include lang/it.yaml
+
+api:
+
+ota:
+  - platform: esphome
+
+captive_portal:

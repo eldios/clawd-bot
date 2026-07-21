@@ -14,3 +14,10 @@ wifi:
 packages:
   board: !include boards/m5stack-cores3.yaml
   # lang: !include lang/it.yaml
+
+api:
+
+ota:
+  - platform: esphome
+
+captive_portal:
