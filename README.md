@@ -4,15 +4,15 @@
   <img src="assets/logo.png" alt="clawd-bot logo" width="256"/>
 </p>
 
-A standalone Claude Code usage monitor for the desk: big screen, readable
-from across the room, no host software. It runs on the M5Stack CoreS3 (the
-head unit of the [Stack-chan](https://docs.m5stack.com/en/StackChan/) robot
-kit), connects to your WiFi, and polls Anthropic directly with a dedicated
-long-lived token.
+A standalone Claude Code usage monitor for the desk: no host software,
+no companion daemon. The device connects to your WiFi and polls Anthropic
+directly with a dedicated long-lived token, showing your usage on whatever
+screen it has - as readable as that screen allows.
 
-Built as an ESPHome package: adopt it from the ESPHome Builder (inside or
-outside Home Assistant) with a dozen lines of YAML, update over-the-air by
-bumping a release tag.
+Built as an ESPHome package with per-board implementations over a shared
+engine: adopt it from the ESPHome Builder (inside or outside Home
+Assistant) with a dozen lines of YAML, update over-the-air by bumping a
+release tag, and pick the board entry that matches your hardware.
 
 ## What it shows
 
