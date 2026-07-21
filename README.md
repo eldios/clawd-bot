@@ -22,11 +22,21 @@ bumping a release tag.
   so you always know what the monitor itself consumes
 - On-screen touch button to force a refresh
 
-## Hardware
+## Supported devices
 
-- [M5Stack CoreS3](https://docs.m5stack.com/en/core/CoreS3) (ESP32-S3,
-  320x240 IPS touch) - standalone or as the head of a Stack-chan kit.
-- CoreS3 SE should work too (same display/touch/PMU; no battery gauge).
+One codebase, per-board implementations: every board gets its own entry
+under `boards/` combining the shared usage engine with hardware support
+and a UI sized to what the device can do. All boards update the same way
+(bump the release tag, flash OTA).
+
+| Board | Status | UI |
+|---|---|---|
+| [M5Stack CoreS3](https://docs.m5stack.com/en/core/CoreS3) / [Stack-chan](https://docs.m5stack.com/en/StackChan/) | supported | rich 320x240 touch: hero number, bars, countdowns, touch refresh |
+| M5Stack CoreS3 SE | untested, should work | same as CoreS3 (no battery gauge) |
+| M5StickC Plus2 and friends | planned | minimal: numbers and little else |
+
+Want another board? See [CONTRIBUTING.md](CONTRIBUTING.md) - the layout
+is designed for drive-in board additions.
 
 ## How it gets the data
 
@@ -70,7 +80,7 @@ never leaves the device except toward api.anthropic.com over TLS.
      clawd_bot:
        url: https://github.com/eldios/clawd-bot
        ref: v0.0.1
-       files: [clawd-bot.package.yaml]
+       files: [boards/m5stack-cores3.yaml]
        refresh: 1d
 
    wifi:

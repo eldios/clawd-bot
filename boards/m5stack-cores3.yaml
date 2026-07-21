@@ -1,6 +1,8 @@
-# clawd-bot - remote-importable ESPHome package.
-# Do NOT use !secret here: secrets resolve in the importing user's config.
-# Everything user-specific arrives via substitutions (see README).
+# clawd-bot on the M5Stack CoreS3 (also the Stack-chan head unit).
+# Remote-importable board entry: SoC config + CoreS3 hardware + the rich
+# 320x240 touch UI, on top of the shared usage engine.
+# No !secret here - secrets resolve in the importing user's config;
+# everything user-specific arrives via substitutions (see README).
 
 substitutions:
   name: clawd-bot
@@ -41,21 +43,8 @@ psram:
   mode: quad
   speed: 80MHz
 
-captive_portal:
-
-api:
-
-ota:
-  - platform: esphome
-
-logger:
-  level: INFO
-
-time:
-  - platform: sntp
-    id: sntp_time
-
 packages:
-  hardware: !include packages/hardware-cores3.yaml
-  poller: !include packages/usage-poller.yaml
-  ui: !include packages/ui.yaml
+  common: !include ../packages/common.yaml
+  hardware: !include ../packages/hardware-cores3.yaml
+  poller: !include ../packages/usage-poller.yaml
+  ui: !include ../packages/ui-320x240-touch.yaml

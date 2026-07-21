@@ -1,0 +1,15 @@
+# Board-agnostic services shared by every clawd-bot device.
+
+captive_portal:
+
+api:
+
+ota:
+  - platform: esphome
+
+logger:
+  level: INFO
+
+time:
+  - platform: sntp
+    id: sntp_time

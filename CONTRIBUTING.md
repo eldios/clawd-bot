@@ -34,6 +34,21 @@ docs for the exact release. Link the source in the PR description.
 
 ## Adding a board
 
-v0.0.1 targets the M5Stack CoreS3 only. If you want another board, open an
-issue first: the split to a per-board package layout should happen once,
-deliberately, not ad hoc in a drive-by PR.
+The layout is built for it - one board = one entry file, reusing the
+shared engine:
+
+1. `packages/hardware-<name>.yaml` - display, touch (if any), power,
+   buses. Source every pin from canonical references.
+2. Pick a UI package matching the display class, or add one
+   (`packages/ui-<W>x<H>-<class>.yaml`). The poller
+   (`packages/usage-poller.yaml`) is board-agnostic - do not fork it.
+3. `boards/<name>.yaml` - SoC/framework config + `packages:` include of
+   common, hardware, poller, and the UI. Same substitutions contract as
+   the CoreS3 entry (`claude_token`, `poll_interval`, `name`).
+4. Add the board to the README table with its status ("tested on
+   hardware" or "untested") and the import snippet.
+
+UI packages must always show at minimum: the 5h utilization, a 7d
+indicator, and the polling cost (req/day). Screens too small for the rest
+should drop features, not shrink them into unreadability - that is the
+whole point of this project.

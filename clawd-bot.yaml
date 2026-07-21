@@ -1,6 +1,6 @@
-# Local development entry point: wifi + token from secrets.yaml.
-# End users adopting via the ESPHome builder should import
-# clawd-bot.package.yaml instead - see README.md.
+# Local development entry point: wifi + token from secrets.yaml, board
+# picked here. End users adopting via the ESPHome builder import a file
+# from boards/ instead - see README.md.
 
 substitutions:
   claude_token: !secret claude_token
@@ -12,4 +12,4 @@ wifi:
     password: !secret ap_password
 
 packages:
-  clawd_bot: !include clawd-bot.package.yaml
+  board: !include boards/m5stack-cores3.yaml
