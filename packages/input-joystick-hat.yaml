@@ -39,6 +39,7 @@ interval:
           if (now_ms - last_bright_ms > 300) {
             int step = (jy > 60) ? 1 : (jy < -60) ? -1 : 0;
             if (step != 0) {
+              id(note_activity).execute();   // stick motion counts as activity
               bright_idx += step;
               if (bright_idx < 0) bright_idx = 0;
               if (bright_idx > 3) bright_idx = 3;

@@ -7,6 +7,8 @@ substitutions:
   dim_timeout_default: "120"
   dim_brightness_default: "20"
   saver_timeout_default: "600"
+  # Full screen-off is opt-in: 0 disables it (any value below 10s does).
+  screen_off_timeout_default: "0"
 
 globals:
   - id: last_activity_s
@@ -22,6 +24,10 @@ globals:
     restore_value: no
     initial_value: "0.8"
   - id: saver_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: is_screen_off
     type: bool
     restore_value: no
     initial_value: "false"
@@ -66,6 +72,17 @@ number:
     initial_value: ${saver_timeout_default}
     restore_value: true
     optimistic: true
+  - platform: template
+    id: screen_off_timeout
+    name: "Screen Off Timeout"
+    entity_category: config
+    unit_of_measurement: "s"
+    min_value: 0
+    max_value: 14400
+    step: 10
+    initial_value: ${screen_off_timeout_default}
+    restore_value: true
+    optimistic: true
 
 switch:
   - platform: template
@@ -91,6 +108,13 @@ script:
   - id: note_activity
     mode: single
     then:
+      # Wake from full screen-off first: resume rendering, then relight.
+      - if:
+          condition:
+            lambda: "return id(is_screen_off);"
+          then:
+            - lvgl.resume:
+            - lambda: "id(is_screen_off) = false;"
       - lambda: |-
           id(last_activity_s) = millis() / 1000;
           if (id(is_dimmed)) {
@@ -121,3 +145,19 @@ interval:
                   && ((millis() / 1000) - id(last_activity_s)) >= (uint32_t) id(saver_timeout).state;
           then:
             - lvgl.page.show: saver_page
+      # Full screen-off: backlight cut + LVGL paused (no rendering work).
+      # The dim step keeps pre_dim_brightness current; capture it here too
+      # in case dimming is disabled.
+      - if:
+          condition:
+            lambda: |-
+              return id(screen_off_timeout).state >= 10 && !id(is_screen_off)
+                  && ((millis() / 1000) - id(last_activity_s)) >= (uint32_t) id(screen_off_timeout).state;
+          then:
+            - lambda: |-
+                if (!id(is_dimmed))
+                  id(pre_dim_brightness) = id(lcd_backlight).current_values.get_brightness();
+                id(is_screen_off) = true;
+            - light.turn_off: lcd_backlight
+            - lvgl.pause:
+                show_snow: false
