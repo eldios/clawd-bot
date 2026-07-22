@@ -5,9 +5,16 @@
 # Requires idle.yaml (saver_active global, note_activity) and a UI
 # package providing main_page + font_small.
 
+# Sprite paths default to GitHub raw URLs so the package works when
+# imported remotely (image file: paths resolve in the USER's config dir,
+# not in the cloned package). Local dev entry points override these with
+# repo-relative paths.
 substitutions:
-  saver_boat_r_file: "assets/sprites/boat-big-r.png"
-  saver_boat_l_file: "assets/sprites/boat-big-l.png"
+  saver_boat_r_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/boat-big-r.png"
+  saver_boat_l_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/boat-big-l.png"
+  saver_cloud_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/cloud.png"
+  saver_moon_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/moon.png"
+  saver_wave_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/wave.png"
   saver_boat_w: "96"
   saver_boat_h: "51"
 
@@ -20,15 +27,15 @@ image:
     id: spr_boat_l
     type: RGB565
     transparency: alpha_channel
-  - file: assets/sprites/cloud.png
+  - file: ${saver_cloud_file}
     id: spr_cloud
     type: RGB565
     transparency: alpha_channel
-  - file: assets/sprites/moon.png
+  - file: ${saver_moon_file}
     id: spr_moon
     type: RGB565
     transparency: alpha_channel
-  - file: assets/sprites/wave.png
+  - file: ${saver_wave_file}
     id: spr_wave
     type: RGB565
     transparency: alpha_channel

@@ -52,3 +52,14 @@ UI packages must always show at minimum: the 5h utilization, a 7d
 indicator, and the polling cost (req/day). Screens too small for the rest
 should drop features, not shrink them into unreadability - that is the
 whole point of this project.
+
+## Releasing
+
+1. Land everything on `main`, verify on hardware.
+2. Signed tag: `git tag -s vX.Y.Z main -m "..."`.
+3. Move the floating release branch: `git branch -f stable vX.Y.Z`.
+4. Push tag and branch: `git push origin vX.Y.Z stable`.
+5. Create the GitHub release: `gh release create vX.Y.Z --generate-notes`.
+
+Users on `ref: stable` pick the release up at their next Install; pinned
+users bump their `ref:` when they choose to.

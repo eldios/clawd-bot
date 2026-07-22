@@ -89,7 +89,7 @@ never leaves the device except toward api.anthropic.com over TLS.
    packages:
      clawd_bot:
        url: https://github.com/eldios/clawd-bot
-       ref: v0.0.1
+       ref: stable                            # latest release, auto-updating
        files: [boards/m5stack-cores3.yaml]   # pick your board from the table
        refresh: 1d
    ```
@@ -99,8 +99,10 @@ never leaves the device except toward api.anthropic.com over TLS.
 
 4. First install: connect the device over USB and use "Install via USB"
    (or [web.esphome.io](https://web.esphome.io) from any browser).
-5. Updates: bump `ref:` to the new release tag and hit Install - it goes
-   over-the-air, no cable needed.
+5. Updates: with `ref: stable` just hit Install - the `stable` branch
+   always points at the latest release, and `refresh:` controls how often
+   the Builder re-fetches it. Prefer full control? Pin `ref: v0.0.2` and
+   bump it yourself per release; `ref: main` rides the bleeding edge.
 
 ## Quick start - CLI
 

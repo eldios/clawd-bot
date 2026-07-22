@@ -11,8 +11,8 @@ substitutions:
   # Seconds between usage polls; the footer shows the resulting req/day.
   poll_interval: "120"
   # Small-screen sprites for the shared screensaver.
-  saver_boat_r_file: "assets/sprites/boat-small-r.png"
-  saver_boat_l_file: "assets/sprites/boat-small-l.png"
+  saver_boat_r_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/boat-small-r.png"
+  saver_boat_l_file: "https://raw.githubusercontent.com/eldios/clawd-bot/main/assets/sprites/boat-small-l.png"
   saver_boat_w: "40"
   saver_boat_h: "26"
 
