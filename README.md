@@ -101,7 +101,7 @@ never leaves the device except toward api.anthropic.com over TLS.
    (or [web.esphome.io](https://web.esphome.io) from any browser).
 5. Updates: with `ref: stable` just hit Install - the `stable` branch
    always points at the latest release, and `refresh:` controls how often
-   the Builder re-fetches it. Prefer full control? Pin `ref: v0.0.2` and
+   the Builder re-fetches it. Prefer full control? Pin `ref: v0.0.3` and
    bump it yourself per release; `ref: main` rides the bleeding edge.
 
 ## Quick start - CLI
