@@ -3,6 +3,9 @@
 # UI strings - English defaults. Override any of them in your own config,
 # or include one of the ready-made packs from lang/ (it, de, fr, es).
 substitutions:
+  # Running firmware version - bumped as part of each release (see
+  # CONTRIBUTING.md "Releasing").
+  clawd_bot_version: "0.0.4"
   str_waiting: "waiting for data"
   str_refreshing: "updating..."
   str_refresh_btn: "Refresh"

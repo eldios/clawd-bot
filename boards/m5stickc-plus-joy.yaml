@@ -37,6 +37,7 @@ packages:
   hardware: !include ../packages/hardware-m5stickc-plus.yaml
   input: !include ../packages/input-joystick-hat.yaml
   poller: !include ../packages/usage-poller.yaml
+  versioncheck: !include ../packages/version-check.yaml
   idle: !include ../packages/idle.yaml
   ui: !include ../packages/ui-240x135-minimal.yaml
   saver: !include ../packages/saver.yaml
