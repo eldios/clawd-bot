@@ -145,9 +145,13 @@ the device - re-add the ESPHome integration (see below).
 ## Home Assistant integration
 
 The device exposes its sensors natively (5h/7d utilization, limit status,
-battery) plus the display settings (dim timeout/brightness, screensaver
-enable/timeout/metric) as config entities. Automations like "notify me
-at 80% usage" are a two-line HA automation away - no extra firmware work.
+Anthropic status-page indicator, battery) plus a full set of config
+entities: display (dim timeout/brightness, screen-off timeout,
+screensaver enable/timeout/metric), screensaver scenery (stars, moon,
+clouds, sea/sky fauna), session chime (enable, melody, volume, test
+button) and, on boards with one, the LED (mode select + light entity).
+Automations like "notify me at 80% usage" are a two-line HA automation
+away - no extra firmware work.
 
 **If the device does not appear automatically**: mDNS discovery does not
 cross VLANs, so on segmented networks (device on an IoT VLAN, HA
@@ -156,11 +160,15 @@ Add integration > ESPHome > host `clawd-bot.local` (or its IP), port
 6053. OTA and logs from the ESPHome Builder work either way, since they
 use direct routing rather than discovery.
 
+## Screenshot tool (optional)
+
+For UI development: add `clawd_screenshot:` to your device YAML and
+`tools/screenshot.sh <device-ip> out.png` grabs the live LVGL screen
+(HTTP on port 8081, LAN-only, unauthenticated - leave it out of
+day-to-day configs).
+
 ## Roadmap
 
-- Session-reset chime (the CoreS3 speaker + AW88298 amp are supported by
-  M5Stack's official ESPHome components already)
-- Anthropic status-page indicator
 - Stack-chan body features: servo gestures, LEDs, and friends
 
 ## Acknowledgements

@@ -51,3 +51,4 @@ packages:
   idle: !include ../packages/idle.yaml
   ui: !include ../packages/ui-320x240-touch.yaml
   saver: !include ../packages/saver.yaml
+  chime: !include ../packages/chime.yaml

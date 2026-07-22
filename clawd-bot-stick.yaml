@@ -6,17 +6,17 @@ substitutions:
   # Local dev: in-repo component sources instead of GitHub.
   clawd_components_source: "components"
   # Local dev: repo sprites instead of the GitHub raw URLs.
-  saver_cloud_file: "assets/sprites/cloud.png"
-  saver_moon_file: "assets/sprites/moon.png"
-  saver_wave_file: "assets/sprites/wave.png"
-  saver_boat_r_file: "assets/sprites/boat-small-r.png"
-  saver_boat_l_file: "assets/sprites/boat-small-l.png"
+  saver_sprite_base: "assets/sprites"
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   ap:
     password: !secret ap_password
+
+# Dev: full logs on the wire (the package default is INFO).
+logger:
+  level: DEBUG
 
 packages:
   board: !include boards/m5stickc-plus.yaml
@@ -28,3 +28,6 @@ ota:
   - platform: esphome
 
 captive_portal:
+
+# Dev QA: GET http://<ip>:8081/screenshot (see tools/screenshot.sh).
+clawd_screenshot:
