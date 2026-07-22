@@ -55,6 +55,19 @@ lvgl:
             text_font: font_small
             text_color: 0x9A948A
             text: ""
+        # Anthropic status-page dot (UI contract: every UI provides
+        # status_dot). Hidden while operational; the poller package
+        # colors it yellow/orange/red on incidents.
+        - obj:
+            id: status_dot
+            hidden: true
+            align: TOP_MID
+            y: 9
+            width: 10
+            height: 10
+            radius: 5
+            bg_color: 0xF5D90A
+            border_width: 0
         # --- hero ---
         - label:
             id: lbl_hero

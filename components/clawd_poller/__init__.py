@@ -15,11 +15,16 @@ PollResultTrigger = clawd_poller_ns.class_(
         cg.float_, cg.float_, cg.int64, cg.int64, cg.std_string, cg.int_
     ),
 )
+StatusResultTrigger = clawd_poller_ns.class_(
+    "StatusResultTrigger", automation.Trigger.template(cg.std_string)
+)
 PollAction = clawd_poller_ns.class_("PollAction", automation.Action)
+CheckStatusAction = clawd_poller_ns.class_("CheckStatusAction", automation.Action)
 
 CONF_TOKEN = "token"
 CONF_PROBE_MODEL = "probe_model"
 CONF_ON_RESULT = "on_result"
+CONF_ON_ANTHROPIC_STATUS = "on_anthropic_status"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -28,6 +33,9 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_PROBE_MODEL, default="claude-haiku-4-5-20251001"): cv.string,
         cv.Optional(CONF_ON_RESULT): automation.validate_automation(
             {cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(PollResultTrigger)}
+        ),
+        cv.Optional(CONF_ON_ANTHROPIC_STATUS): automation.validate_automation(
+            {cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(StatusResultTrigger)}
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -53,6 +61,9 @@ async def to_code(config):
             ],
             conf,
         )
+    for conf in config.get(CONF_ON_ANTHROPIC_STATUS, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [(cg.std_string, "indicator")], conf)
 
 
 @automation.register_action(
@@ -61,6 +72,17 @@ async def to_code(config):
     automation.maybe_simple_id({cv.GenerateID(): cv.use_id(ClawdPoller)}),
 )
 async def clawd_poller_poll_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
+
+
+@automation.register_action(
+    "clawd_poller.check_status",
+    CheckStatusAction,
+    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(ClawdPoller)}),
+)
+async def clawd_poller_check_status_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
     return var

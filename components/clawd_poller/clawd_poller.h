@@ -24,8 +24,17 @@ class ClawdPoller : public Component {
     this->callbacks_.add(std::move(cb));
   }
 
+  void add_on_status_callback(std::function<void(std::string)> &&cb) {
+    this->status_callbacks_.add(std::move(cb));
+  }
+
   // Spawn a poll task; no-op while a poll is already in flight.
   void poll();
+
+  // Spawn an Anthropic status-page check task; no-op while one runs.
+  // Reports the statuspage indicator (none/minor/major/critical, or
+  // "unknown" when the request fails).
+  void check_status();
 
   void loop() override;
   float get_setup_priority() const override { return setup_priority::LATE; }
@@ -33,6 +42,8 @@ class ClawdPoller : public Component {
  protected:
   static void poll_task(void *param);
   void run_probe_();
+  static void status_task(void *param);
+  void run_status_probe_();
 
   std::string token_;
   std::string model_;
@@ -48,7 +59,12 @@ class ClawdPoller : public Component {
   std::string result_status_;
   int result_code_{0};
 
+  volatile bool status_done_{false};
+  bool status_running_{false};
+  std::string status_result_;
+
   CallbackManager<void(float, float, int64_t, int64_t, std::string, int)> callbacks_;
+  CallbackManager<void(std::string)> status_callbacks_;
 };
 
 class PollResultTrigger
@@ -62,9 +78,22 @@ class PollResultTrigger
   }
 };
 
+class StatusResultTrigger : public Trigger<std::string> {
+ public:
+  explicit StatusResultTrigger(ClawdPoller *parent) {
+    parent->add_on_status_callback(
+        [this](std::string indicator) { this->trigger(indicator); });
+  }
+};
+
 template<typename... Ts> class PollAction : public Action<Ts...>, public Parented<ClawdPoller> {
  public:
   void play(Ts... x) override { this->parent_->poll(); }
+};
+
+template<typename... Ts> class CheckStatusAction : public Action<Ts...>, public Parented<ClawdPoller> {
+ public:
+  void play(Ts... x) override { this->parent_->check_status(); }
 };
 
 }  // namespace clawd_poller

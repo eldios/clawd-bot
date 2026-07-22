@@ -13,7 +13,9 @@ substitutions:
 
 external_components:
   - source: ${clawd_components_source}
-    components: [clawd_poller]
+    # clawd_screenshot is fetched here too but only builds when a config
+    # opts in with a `clawd_screenshot:` block (see README).
+    components: [clawd_poller, clawd_screenshot]
     refresh: 1d
 
 globals:
@@ -33,6 +35,12 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  # 0 = ok, 1 = near limit (allowed_warning), 2 = limit reached (rejected).
+  # Numeric mirror of the unified status header for LED/UI consumers.
+  - id: limit_level
+    type: int
+    restore_value: no
+    initial_value: "0"
 
 sensor:
   - platform: template
@@ -53,10 +61,30 @@ text_sensor:
     id: usage_status
     name: "Claude Limit Status"
     update_interval: never
+  - platform: template
+    id: anthropic_status
+    name: "Anthropic Status"
+    entity_category: diagnostic
+    update_interval: never
 
 clawd_poller:
   id: usage_probe
   token: ${claude_token}
+  # Anthropic status page (statuspage.io indicator). "unknown" means the
+  # check itself failed - keep the previous state rather than lying.
+  on_anthropic_status:
+    - lambda: |-
+        if (indicator == "unknown") return;
+        id(anthropic_status).publish_state(indicator);
+        if (indicator == "none") {
+          lv_obj_add_flag(id(status_dot), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          uint32_t color = 0xF5D90A;                       // minor/maintenance
+          if (indicator == "major")    color = 0xF76B15;
+          if (indicator == "critical") color = 0xE5484D;
+          lv_obj_set_style_bg_color(id(status_dot), lv_color_hex(color), 0);
+          lv_obj_clear_flag(id(status_dot), LV_OBJ_FLAG_HIDDEN);
+        }
   on_result:
     - lambda: |-
         if (code == 200) {
@@ -65,10 +93,10 @@ clawd_poller:
           id(reset_5h_epoch) = (long) r5;
           id(reset_7d_epoch) = (long) r7;
           // Localized display mapping for the unified status header.
-          if (status == "allowed")              id(usage_status).publish_state("${str_status_ok}");
-          else if (status == "allowed_warning") id(usage_status).publish_state("${str_status_warning}");
-          else if (status == "rejected")        id(usage_status).publish_state("${str_status_limit}");
-          else                                  id(usage_status).publish_state(status.empty() ? "${str_status_ok}" : status);
+          if (status == "allowed")              { id(limit_level) = 0; id(usage_status).publish_state("${str_status_ok}"); }
+          else if (status == "allowed_warning") { id(limit_level) = 1; id(usage_status).publish_state("${str_status_warning}"); }
+          else if (status == "rejected")        { id(limit_level) = 2; id(usage_status).publish_state("${str_status_limit}"); }
+          else                                  { id(limit_level) = 0; id(usage_status).publish_state(status.empty() ? "${str_status_ok}" : status); }
           id(last_poll_ok) = true;
         } else if (code == 401 || code == 403) {
           id(usage_status).publish_state("${str_token_error}");
@@ -101,3 +129,11 @@ interval:
             wifi.connected:
           then:
             - script.execute: poll_usage
+  - interval: 15min
+    startup_delay: 90s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - clawd_poller.check_status: usage_probe

@@ -124,7 +124,81 @@ void ClawdPoller::run_probe_() {
   esp_http_client_cleanup(client);
 }
 
+void ClawdPoller::check_status() {
+  if (this->status_running_) {
+    ESP_LOGD(TAG, "Status check already in flight, skipping");
+    return;
+  }
+  this->status_running_ = true;
+  if (xTaskCreate(ClawdPoller::status_task, "clawd_status", 12288, this, 1, nullptr) != pdPASS) {
+    ESP_LOGW(TAG, "Failed to create status task");
+    this->status_running_ = false;
+  }
+}
+
+void ClawdPoller::status_task(void *param) {
+  auto *self = static_cast<ClawdPoller *>(param);
+  self->run_status_probe_();
+  self->status_done_ = true;
+  vTaskDelete(nullptr);
+}
+
+struct StatusBody {
+  char buf[600]{};
+  size_t len{0};
+};
+
+static esp_err_t status_event_handler(esp_http_client_event_t *evt) {
+  if (evt->event_id != HTTP_EVENT_ON_DATA)
+    return ESP_OK;
+  auto *b = static_cast<StatusBody *>(evt->user_data);
+  size_t room = sizeof(b->buf) - 1 - b->len;
+  size_t n = (size_t) evt->data_len < room ? (size_t) evt->data_len : room;
+  memcpy(b->buf + b->len, evt->data, n);
+  b->len += n;
+  return ESP_OK;
+}
+
+void ClawdPoller::run_status_probe_() {
+  StatusBody body;
+
+  esp_http_client_config_t cfg{};
+  cfg.url = "https://status.anthropic.com/api/v2/status.json";
+  cfg.method = HTTP_METHOD_GET;
+  cfg.timeout_ms = 15000;
+  cfg.crt_bundle_attach = esp_crt_bundle_attach;
+  cfg.event_handler = status_event_handler;
+  cfg.user_data = &body;
+
+  this->status_result_ = "unknown";
+  esp_http_client_handle_t client = esp_http_client_init(&cfg);
+  if (client == nullptr)
+    return;
+
+  esp_err_t err = esp_http_client_perform(client);
+  if (err == ESP_OK && esp_http_client_get_status_code(client) == 200) {
+    // Tiny fixed payload; a string scan beats pulling in a JSON parser.
+    const char *tag = "\"indicator\":\"";
+    const char *p = strstr(body.buf, tag);
+    if (p != nullptr) {
+      p += strlen(tag);
+      const char *e = strchr(p, '"');
+      if (e != nullptr && (size_t)(e - p) < 24)
+        this->status_result_.assign(p, e - p);
+    }
+  } else {
+    ESP_LOGW(TAG, "Status check failed: %s", esp_err_to_name(err));
+  }
+  esp_http_client_cleanup(client);
+}
+
 void ClawdPoller::loop() {
+  if (this->status_done_) {
+    this->status_done_ = false;
+    this->status_running_ = false;
+    ESP_LOGD(TAG, "Status check done: %s", this->status_result_.c_str());
+    this->status_callbacks_.call(this->status_result_);
+  }
   if (!this->done_)
     return;
   this->done_ = false;
