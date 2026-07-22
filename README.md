@@ -122,6 +122,18 @@ UI strings default to English. Ready-made packs live in `lang/`
 entry (see Quick start), or override individual `str_*` substitutions
 directly in your config (top-level substitutions always win).
 
+## Troubleshooting
+
+**Build fails with an error that was already fixed** (even after "Clean
+Build Files"): the Builder caches the git package for the `refresh:`
+interval, and cleaning build files does not clear that cache. Set
+`refresh: 0s` in the `packages:` block, hit Install once to force a
+re-fetch, then restore `refresh: 1d`.
+
+**Compiler warnings from `mipi_spi.cpp` (`-Wempty-body`)**: these come
+from ESPHome's own display component, not from clawd-bot - harmless,
+safe to ignore.
+
 ## Home Assistant integration
 
 The device exposes its sensors natively (5h/7d utilization, limit status,
