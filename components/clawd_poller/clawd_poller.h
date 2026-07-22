@@ -1,0 +1,71 @@
+#pragma once
+
+#include "esphome/core/component.h"
+#include "esphome/core/automation.h"
+#include "esphome/core/helpers.h"
+
+#include <string>
+
+namespace esphome {
+namespace clawd_poller {
+
+// Polls Anthropic's unified rate-limit headers with a minimal probe
+// request, from a dedicated FreeRTOS task so the main loop (LVGL, BLE,
+// everything) never blocks on TLS + HTTP. Results are handed back to the
+// main loop via a done flag polled in loop(), where the on_result
+// automation fires.
+class ClawdPoller : public Component {
+ public:
+  void set_token(const std::string &token) { this->token_ = token; }
+  void set_probe_model(const std::string &model) { this->model_ = model; }
+
+  void add_on_result_callback(
+      std::function<void(float, float, int64_t, int64_t, std::string, int)> &&cb) {
+    this->callbacks_.add(std::move(cb));
+  }
+
+  // Spawn a poll task; no-op while a poll is already in flight.
+  void poll();
+
+  void loop() override;
+  float get_setup_priority() const override { return setup_priority::LATE; }
+
+ protected:
+  static void poll_task(void *param);
+  void run_probe_();
+
+  std::string token_;
+  std::string model_;
+
+  // Written by the task, consumed by loop(). done_ is the release fence:
+  // the task writes it last, loop() reads it first.
+  volatile bool done_{false};
+  bool running_{false};
+  float result_u5_{-1.0f};
+  float result_u7_{-1.0f};
+  int64_t result_r5_{0};
+  int64_t result_r7_{0};
+  std::string result_status_;
+  int result_code_{0};
+
+  CallbackManager<void(float, float, int64_t, int64_t, std::string, int)> callbacks_;
+};
+
+class PollResultTrigger
+    : public Trigger<float, float, int64_t, int64_t, std::string, int> {
+ public:
+  explicit PollResultTrigger(ClawdPoller *parent) {
+    parent->add_on_result_callback(
+        [this](float u5, float u7, int64_t r5, int64_t r7, std::string status, int code) {
+          this->trigger(u5, u7, r5, r7, status, code);
+        });
+  }
+};
+
+template<typename... Ts> class PollAction : public Action<Ts...>, public Parented<ClawdPoller> {
+ public:
+  void play(Ts... x) override { this->parent_->poll(); }
+};
+
+}  // namespace clawd_poller
+}  // namespace esphome

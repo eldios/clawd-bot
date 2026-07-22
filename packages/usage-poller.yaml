@@ -1,12 +1,20 @@
-# Usage engine: probe POST to /v1/messages, read the unified rate-limit
-# response headers. Mechanism proven by claude-usage-stick and the Clawdmeter
-# daemon; the cleaner GET api/oauth/usage endpoint rejects long-lived
+# Usage engine: minimal probe POST to /v1/messages, unified rate-limit
+# headers read from the response. Runs in a dedicated FreeRTOS task (the
+# clawd_poller external component) so the UI never stutters during the
+# request - ESPHome's http_request action would block the main loop for
+# the whole TLS+HTTP round trip.
+# The cleaner GET api/oauth/usage endpoint rejects long-lived
 # setup-tokens with 403 (tested 2026-07-21), so headers it is.
 
-http_request:
-  id: http_client
-  timeout: 10s
-  watchdog_timeout: 30s
+substitutions:
+  # Where the clawd_poller component comes from. Local dev entry points
+  # override this with the in-repo "components" directory.
+  clawd_components_source: "github://eldios/clawd-bot@main"
+
+external_components:
+  - source: ${clawd_components_source}
+    components: [clawd_poller]
+    refresh: 1d
 
 globals:
   - id: reset_5h_epoch
@@ -46,83 +54,43 @@ text_sensor:
     name: "Claude Limit Status"
     update_interval: never
 
+clawd_poller:
+  id: usage_probe
+  token: ${claude_token}
+  on_result:
+    - lambda: |-
+        if (code == 200) {
+          if (u5 >= 0) id(usage_5h).publish_state(u5 * 100.0f);
+          if (u7 >= 0) id(usage_7d).publish_state(u7 * 100.0f);
+          id(reset_5h_epoch) = (long) r5;
+          id(reset_7d_epoch) = (long) r7;
+          // Localized display mapping for the unified status header.
+          if (status == "allowed")              id(usage_status).publish_state("${str_status_ok}");
+          else if (status == "allowed_warning") id(usage_status).publish_state("${str_status_warning}");
+          else if (status == "rejected")        id(usage_status).publish_state("${str_status_limit}");
+          else                                  id(usage_status).publish_state(status.empty() ? "${str_status_ok}" : status);
+          id(last_poll_ok) = true;
+        } else if (code == 401 || code == 403) {
+          id(usage_status).publish_state("${str_token_error}");
+          id(last_poll_ok) = false;
+        } else if (code == 0) {
+          id(usage_status).publish_state("${str_net_error}");
+          id(last_poll_ok) = false;
+        } else {
+          id(usage_status).publish_state("HTTP " + to_string(code));
+          id(last_poll_ok) = false;
+        }
+        id(poll_in_flight) = false;
+
 script:
   - id: poll_usage
     mode: single
     then:
-      # The http action blocks the loop for the whole request (seconds):
-      # paint the refreshing state NOW so button presses feel instant.
       # Contract: every UI package provides lbl_status.
       - lambda: |-
           id(poll_in_flight) = true;
           lv_label_set_text(id(lbl_status), "${str_refreshing}");
-          lv_refr_now(NULL);
-      - http_request.post:
-          url: https://api.anthropic.com/v1/messages
-          request_headers:
-            Authorization: "Bearer ${claude_token}"
-            anthropic-version: "2023-06-01"
-            anthropic-beta: "oauth-2025-04-20"
-            Content-Type: application/json
-            User-Agent: "claude-code/2.1.5"
-          body: '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}'
-          capture_response: false
-          collect_headers:
-            - anthropic-ratelimit-unified-5h-utilization
-            - anthropic-ratelimit-unified-5h-reset
-            - anthropic-ratelimit-unified-7d-utilization
-            - anthropic-ratelimit-unified-7d-reset
-            - anthropic-ratelimit-unified-status
-          on_response:
-            then:
-              - lambda: |-
-                  // Header values: utilization 0..1 (float), reset RFC3339 or epoch.
-                  auto parse_ts = [](const std::string &v) -> long {
-                    if (v.empty()) return 0;
-                    if (v.find('T') == std::string::npos) return atol(v.c_str());
-                    struct tm tm{};
-                    if (strptime(v.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) == nullptr) return 0;
-                    // UTC epoch without timegm (absent from ESP-IDF newlib):
-                    // days-from-civil, then seconds.
-                    int y = tm.tm_year + 1900, m = tm.tm_mon + 1, d = tm.tm_mday;
-                    y -= m <= 2;
-                    long era = (y >= 0 ? y : y - 399) / 400;
-                    unsigned yoe = (unsigned) (y - era * 400);
-                    unsigned doy = (153u * (unsigned) (m + (m > 2 ? -3 : 9)) + 2u) / 5u + (unsigned) d - 1u;
-                    unsigned doe = yoe * 365u + yoe / 4u - yoe / 100u + doy;
-                    long days = era * 146097L + (long) doe - 719468L;
-                    return days * 86400L + tm.tm_hour * 3600L + tm.tm_min * 60L + tm.tm_sec;
-                  };
-                  if (response->status_code == 200) {
-                    std::string u5 = response->get_response_header("anthropic-ratelimit-unified-5h-utilization");
-                    std::string u7 = response->get_response_header("anthropic-ratelimit-unified-7d-utilization");
-                    std::string r5 = response->get_response_header("anthropic-ratelimit-unified-5h-reset");
-                    std::string r7 = response->get_response_header("anthropic-ratelimit-unified-7d-reset");
-                    std::string st = response->get_response_header("anthropic-ratelimit-unified-status");
-                    if (!u5.empty()) id(usage_5h).publish_state(atof(u5.c_str()) * 100.0f);
-                    if (!u7.empty()) id(usage_7d).publish_state(atof(u7.c_str()) * 100.0f);
-                    id(reset_5h_epoch) = parse_ts(r5);
-                    id(reset_7d_epoch) = parse_ts(r7);
-                    // Localized display mapping for the unified status header.
-                    if (st == "allowed")              id(usage_status).publish_state("${str_status_ok}");
-                    else if (st == "allowed_warning") id(usage_status).publish_state("${str_status_warning}");
-                    else if (st == "rejected")        id(usage_status).publish_state("${str_status_limit}");
-                    else                              id(usage_status).publish_state(st.empty() ? "${str_status_ok}" : st);
-                    id(last_poll_ok) = true;
-                  } else if (response->status_code == 401 || response->status_code == 403) {
-                    id(usage_status).publish_state("${str_token_error}");
-                    id(last_poll_ok) = false;
-                  } else {
-                    id(usage_status).publish_state("HTTP " + to_string(response->status_code));
-                    id(last_poll_ok) = false;
-                  }
-                  id(poll_in_flight) = false;
-          on_error:
-            then:
-              - lambda: |-
-                  id(usage_status).publish_state("${str_net_error}");
-                  id(last_poll_ok) = false;
-                  id(poll_in_flight) = false;
+      - clawd_poller.poll: usage_probe
 
 interval:
   - interval: ${poll_interval}s

@@ -3,6 +3,8 @@
 
 substitutions:
   claude_token: !secret claude_token
+  # Local dev: in-repo component sources instead of GitHub.
+  clawd_components_source: "components"
   # Local dev: repo sprites instead of the GitHub raw URLs.
   saver_cloud_file: "assets/sprites/cloud.png"
   saver_moon_file: "assets/sprites/moon.png"
