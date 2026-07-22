@@ -92,3 +92,5 @@ touchscreen:
       x_max: 320
       y_min: 0
       y_max: 240
+    on_touch:
+      - script.execute: note_activity

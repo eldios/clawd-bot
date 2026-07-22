@@ -29,6 +29,7 @@ interval:
           bool btn = (data[2] == 0);                  // 0 = pressed
 
           if (btn && !btn_last) {
+            id(note_activity).execute();
             id(poll_usage).execute();
           }
           btn_last = btn;

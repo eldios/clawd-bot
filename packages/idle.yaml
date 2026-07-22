@@ -1,0 +1,115 @@
+# Activity tracking, auto-dim and the user-tunable idle settings.
+# Everything is exposed to Home Assistant (config entities) and persisted
+# in NVS; substitutions only provide the first-boot defaults. A timeout
+# number set below 10s disables that feature.
+
+substitutions:
+  dim_timeout_default: "120"
+  dim_brightness_default: "20"
+  saver_timeout_default: "600"
+
+globals:
+  - id: last_activity_s
+    type: uint32_t
+    restore_value: no
+    initial_value: "0"
+  - id: is_dimmed
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: pre_dim_brightness
+    type: float
+    restore_value: no
+    initial_value: "0.8"
+  - id: saver_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+number:
+  - platform: template
+    id: dim_timeout
+    name: "Dim Timeout"
+    entity_category: config
+    unit_of_measurement: "s"
+    min_value: 0
+    max_value: 3600
+    step: 10
+    initial_value: ${dim_timeout_default}
+    restore_value: true
+    optimistic: true
+  - platform: template
+    id: dim_brightness_pct
+    name: "Dim Brightness"
+    entity_category: config
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 100
+    step: 5
+    initial_value: ${dim_brightness_default}
+    restore_value: true
+    optimistic: true
+  - platform: template
+    id: saver_timeout
+    name: "Screensaver Timeout"
+    entity_category: config
+    unit_of_measurement: "s"
+    min_value: 0
+    max_value: 7200
+    step: 10
+    initial_value: ${saver_timeout_default}
+    restore_value: true
+    optimistic: true
+
+switch:
+  - platform: template
+    id: saver_enabled
+    name: "Screensaver"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+select:
+  - platform: template
+    id: saver_metric
+    name: "Screensaver Metric"
+    entity_category: config
+    options: ["5h", "7d"]
+    initial_option: "5h"
+    restore_value: true
+    optimistic: true
+
+script:
+  - id: note_activity
+    mode: single
+    then:
+      - lambda: |-
+          id(last_activity_s) = millis() / 1000;
+          if (id(is_dimmed)) {
+            id(is_dimmed) = false;
+            auto call = id(lcd_backlight).turn_on();
+            call.set_brightness(id(pre_dim_brightness));
+            call.perform();
+          }
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          uint32_t idle = (millis() / 1000) - id(last_activity_s);
+          float dim_after = id(dim_timeout).state;
+          if (dim_after >= 10 && !id(is_dimmed) && idle >= (uint32_t) dim_after) {
+            id(pre_dim_brightness) = id(lcd_backlight).current_values.get_brightness();
+            id(is_dimmed) = true;
+            auto call = id(lcd_backlight).turn_on();
+            call.set_brightness(id(dim_brightness_pct).state / 100.0f);
+            call.perform();
+          }
+      - if:
+          condition:
+            lambda: |-
+              return id(saver_enabled).state && !id(saver_active)
+                  && id(saver_timeout).state >= 10
+                  && ((millis() / 1000) - id(last_activity_s)) >= (uint32_t) id(saver_timeout).state;
+          then:
+            - lvgl.page.show: saver_page
