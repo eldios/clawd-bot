@@ -308,7 +308,7 @@ interval:
           if (W <= 0 || H <= 0) return;
           // Water level = selected metric.
           float pct = 0.0f;
-          if (id(saver_metric).state == "7d") {
+          if (id(saver_metric_is_7d)) {
             if (!isnan(id(usage_7d).state)) pct = id(usage_7d).state;
           } else {
             if (!isnan(id(usage_5h).state)) pct = id(usage_5h).state;

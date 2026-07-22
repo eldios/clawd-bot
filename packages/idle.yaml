@@ -25,6 +25,12 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  # Mirror of the saver_metric select: newer ESPHome template selects no
+  # longer expose .state to lambdas, on_value is the portable path.
+  - id: saver_metric_is_7d
+    type: bool
+    restore_value: no
+    initial_value: "false"
 
 number:
   - platform: template
@@ -78,6 +84,8 @@ select:
     initial_option: "5h"
     restore_value: true
     optimistic: true
+    on_value:
+      - lambda: "id(saver_metric_is_7d) = (x == \"7d\");"
 
 script:
   - id: note_activity
