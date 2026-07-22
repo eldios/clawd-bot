@@ -45,6 +45,26 @@ output:
     channel: DLDO3
     id: lcd_logic_power
     voltage: 3000
+  # Passive buzzer (G2) - PWM-driven, backs the shared chime package.
+  - platform: ledc
+    id: buzzer_output
+    pin: GPIO2
+  # Internal red LED (G10, active low) - backs the shared led package.
+  - platform: ledc
+    id: led_output
+    pin: GPIO10
+    inverted: true
+
+rtttl:
+  id: chime_rtttl
+  output: buzzer_output
+
+script:
+  # Chime hardware contract: nothing to power up on this board.
+  - id: sound_begin
+    mode: single
+    then:
+      - lambda: return;
 
 light:
   - platform: monochromatic
