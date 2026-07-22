@@ -115,7 +115,10 @@ script:
 lvgl:
   pages:
     - id: saver_page
-      bg_color: 0x0A0A14
+      # Pure black: near-black shades show row banding on some ST7789
+      # panels (StickC Plus), and a night sky reads just as well in true
+      # black on every display.
+      bg_color: 0x000000
       # Wave tiles intentionally overflow the right edge; without this the
       # page turns scrollable and LVGL draws a drifting scrollbar.
       scrollbar_mode: "off"
