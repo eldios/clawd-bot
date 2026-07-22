@@ -50,7 +50,13 @@ script:
   - id: poll_usage
     mode: single
     then:
-      - lambda: "id(poll_in_flight) = true;"
+      # The http action blocks the loop for the whole request (seconds):
+      # paint the refreshing state NOW so button presses feel instant.
+      # Contract: every UI package provides lbl_status.
+      - lambda: |-
+          id(poll_in_flight) = true;
+          lv_label_set_text(id(lbl_status), "${str_refreshing}");
+          lv_refr_now(NULL);
       - http_request.post:
           url: https://api.anthropic.com/v1/messages
           request_headers:

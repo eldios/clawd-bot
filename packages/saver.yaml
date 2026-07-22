@@ -146,6 +146,14 @@ lvgl:
         - obj: { id: star_13, x: 52%, y: 42%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
         - obj: { id: star_14, x: 79%, y: 24%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
         - obj: { id: star_15, x: 88%, y: 10%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - label:
+            id: lbl_saver_pct
+            align: CENTER
+            y: -10
+            text_font: font_hero
+            text_color: 0x4A4640
+            text_opa: 55%
+            text: "--%"
         - image:
             id: img_moon
             src: spr_moon
@@ -278,13 +286,6 @@ lvgl:
         - image:
             id: img_boat
             src: spr_boat_r
-        - label:
-            id: lbl_saver_pct
-            align: TOP_MID
-            y: 8
-            text_font: font_small
-            text_color: 0x6A655D
-            text: "--%"
 
 interval:
   # Screensaver animation. Only does work while the saver page is shown.
@@ -376,3 +377,7 @@ interval:
               lv_obj_set_style_bg_opa(stars[i], opa, 0);
             }
           }
+          // Big translucent percentage behind the scene.
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%d%%", (int) pct);
+          lv_label_set_text(id(lbl_saver_pct), buf);

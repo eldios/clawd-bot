@@ -55,16 +55,16 @@ sensor:
       id: battery_charging
 
 binary_sensor:
-  # Front button (BtnA): force a refresh.
+  # Front button (BtnA, the big M5 one): toggle main <-> screensaver -
+  # the frequent gesture belongs on the comfortable button.
   - platform: gpio
     id: btn_a
     pin:
       number: GPIO37
       inverted: true
     on_press:
-      - script.execute: note_activity
-      - script.execute: poll_usage
-  # Side button (BtnB): toggle main screen <-> screensaver.
+      - script.execute: toggle_saver
+  # Right-side button (BtnB): force a refresh.
   - platform: gpio
     id: btn_b
     internal: true
@@ -72,7 +72,8 @@ binary_sensor:
       number: GPIO39
       inverted: true
     on_press:
-      - script.execute: toggle_saver
+      - script.execute: note_activity
+      - script.execute: poll_usage
 
 display:
   # mipi_spi (not the legacy st7789v): its MADCTL hardware rotation is what

@@ -14,6 +14,13 @@ engine: adopt it from the ESPHome Builder (inside or outside Home
 Assistant) with a dozen lines of YAML, update over-the-air by bumping a
 release tag, and pick the board entry that matches your hardware.
 
+|  |  |
+| :---: | :---: |
+| ![CoreS3 screensaver](assets/photos/core_1.jpg) | ![CoreS3 main screen](assets/photos/core_2.jpg) |
+| The crab sails a sea that IS your usage | Main screen: readable from across the room |
+| ![M5StickC Plus](assets/photos/stick_1.jpg) | ![M5StickC Plus with Joystick Hat](assets/photos/stick_2.jpg) |
+| M5StickC Plus, minimal UI | Same engine, joystick-hat variant |
+
 ## What it shows
 
 - **5-hour window utilization** as a hero number readable from desk distance
