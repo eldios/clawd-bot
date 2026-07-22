@@ -134,6 +134,14 @@ re-fetch, then restore `refresh: 1d`.
 from ESPHome's own display component, not from clawd-bot - harmless,
 safe to ignore.
 
+**Device reboots every ~15 minutes** (screen suddenly back to "waiting
+for data"): ESPHome's native API reboots the device when no Home
+Assistant client stays connected for `reboot_timeout` (default 15min).
+clawd-bot disables that failsafe since v0.0.5; on older versions add
+`reboot_timeout: 0s` under the `api:` block of your device YAML. If you
+DO use Home Assistant and see this, HA is not holding its connection to
+the device - re-add the ESPHome integration (see below).
+
 ## Home Assistant integration
 
 The device exposes its sensors natively (5h/7d utilization, limit status,
