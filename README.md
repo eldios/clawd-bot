@@ -115,9 +115,17 @@ directly in your config (top-level substitutions always win).
 
 ## Home Assistant integration
 
-The device exposes its sensors natively: 5h/7d utilization, limit status,
-battery. Automations like "notify me at 80% usage" are a two-line HA
-automation away - no extra firmware work.
+The device exposes its sensors natively (5h/7d utilization, limit status,
+battery) plus the display settings (dim timeout/brightness, screensaver
+enable/timeout/metric) as config entities. Automations like "notify me
+at 80% usage" are a two-line HA automation away - no extra firmware work.
+
+**If the device does not appear automatically**: mDNS discovery does not
+cross VLANs, so on segmented networks (device on an IoT VLAN, HA
+elsewhere) you must add it manually - Settings > Devices & services >
+Add integration > ESPHome > host `clawd-bot.local` (or its IP), port
+6053. OTA and logs from the ESPHome Builder work either way, since they
+use direct routing rather than discovery.
 
 ## Roadmap
 
