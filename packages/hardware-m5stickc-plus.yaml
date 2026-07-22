@@ -62,14 +62,17 @@ binary_sensor:
       number: GPIO37
       inverted: true
     on_press:
+      - script.execute: note_activity
       - script.execute: poll_usage
-  # Side button (BtnB): reserved for future use.
+  # Side button (BtnB): toggle main screen <-> screensaver.
   - platform: gpio
     id: btn_b
     internal: true
     pin:
       number: GPIO39
       inverted: true
+    on_press:
+      - script.execute: toggle_saver
 
 display:
   # mipi_spi (not the legacy st7789v): its MADCTL hardware rotation is what

@@ -1,0 +1,178 @@
+# Screensaver: the crab sails its boat left and right on a sea whose
+# level IS your usage (0% = empty, 100% = full), bobbing across the
+# waterline while there is still headroom. Shared by every display
+# class: boards override the sprite substitutions for small screens.
+# Requires idle.yaml (saver_active global, note_activity) and a UI
+# package providing main_page + font_small.
+
+substitutions:
+  saver_boat_r_file: "assets/sprites/boat-big-r.png"
+  saver_boat_l_file: "assets/sprites/boat-big-l.png"
+  saver_boat_w: "96"
+  saver_boat_h: "51"
+
+image:
+  - file: ${saver_boat_r_file}
+    id: spr_boat_r
+    type: RGB565
+    transparency: alpha_channel
+  - file: ${saver_boat_l_file}
+    id: spr_boat_l
+    type: RGB565
+    transparency: alpha_channel
+  - file: assets/sprites/cloud.png
+    id: spr_cloud
+    type: RGB565
+    transparency: alpha_channel
+  - file: assets/sprites/moon.png
+    id: spr_moon
+    type: RGB565
+    transparency: alpha_channel
+  - file: assets/sprites/wave.png
+    id: spr_wave
+    type: RGB565
+    transparency: alpha_channel
+
+script:
+  - id: toggle_saver
+    mode: single
+    then:
+      - script.execute: note_activity
+      - if:
+          condition:
+            lambda: "return id(saver_active);"
+          then:
+            - lvgl.page.show: main_page
+          else:
+            - lvgl.page.show: saver_page
+
+lvgl:
+  pages:
+    - id: saver_page
+      bg_color: 0x0A0A14
+      on_load:
+        - lambda: "id(saver_active) = true;"
+      on_unload:
+        - lambda: "id(saver_active) = false;"
+      widgets:
+        # Full-page tap target: any touch leaves the screensaver.
+        - obj:
+            id: saver_tap
+            x: 0
+            y: 0
+            width: 100%
+            height: 100%
+            bg_opa: TRANSP
+            border_width: 0
+            on_click:
+              - script.execute: toggle_saver
+        - image:
+            id: img_moon
+            src: spr_moon
+            align: TOP_RIGHT
+            x: -16
+            y: 10
+        - image:
+            id: img_cloud
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 20
+            y: 16
+        - obj:
+            id: water_rect
+            align: BOTTOM_MID
+            width: 100%
+            height: 10
+            bg_color: 0x1D4E79
+            bg_opa: COVER
+            border_width: 0
+            radius: 0
+        - image:
+            id: img_wave_0
+            src: spr_wave
+        - image:
+            id: img_wave_1
+            src: spr_wave
+        - image:
+            id: img_wave_2
+            src: spr_wave
+        - image:
+            id: img_wave_3
+            src: spr_wave
+        - image:
+            id: img_wave_4
+            src: spr_wave
+        - image:
+            id: img_wave_5
+            src: spr_wave
+        - image:
+            id: img_boat
+            src: spr_boat_r
+        - label:
+            id: lbl_saver_pct
+            align: TOP_MID
+            y: 8
+            text_font: font_small
+            text_color: 0x6A655D
+            text: "--%"
+
+interval:
+  # Screensaver animation. Only does work while the saver page is shown.
+  - interval: 100ms
+    then:
+      - lambda: |-
+          if (!id(saver_active)) return;
+          static float t = 0.0f;
+          t += 0.1f;
+          lv_obj_t *scr = lv_scr_act();
+          int W = lv_obj_get_width(scr);
+          int H = lv_obj_get_height(scr);
+          if (W <= 0 || H <= 0) return;
+          // Water level = selected metric.
+          float pct = 0.0f;
+          if (id(saver_metric).state == "7d") {
+            if (!isnan(id(usage_7d).state)) pct = id(usage_7d).state;
+          } else {
+            if (!isnan(id(usage_5h).state)) pct = id(usage_5h).state;
+          }
+          if (pct < 0) pct = 0;
+          if (pct > 100) pct = 100;
+          int water_h = (int)(H * pct / 100.0f);
+          lv_obj_set_height(id(water_rect), water_h);
+          int wl = H - water_h;   // waterline y from screen top
+          // Boat: triangle sweep across the width, flipping the sprite
+          // at each turn; bobs across the waterline unless the sea is full.
+          const float period = 26.0f;
+          float phase = fmodf(t, period) / period;
+          bool moving_right = phase < 0.5f;
+          float px = moving_right ? (phase * 2.0f) : (2.0f - phase * 2.0f);
+          int bw = ${saver_boat_w};
+          int bh = ${saver_boat_h};
+          int x = (int)(px * (float)(W - bw));
+          float bob_amp = (pct >= 99.0f) ? 2.0f : 6.0f;
+          int hull = (int)(bh * 0.40f);   // how much hull sits in the water
+          int y = wl - bh + hull + (int)(bob_amp * sinf(t * 1.3f));
+          if (y > H - bh) y = H - bh;
+          if (y < 0) y = 0;
+          lv_obj_set_pos(id(img_boat), x, y);
+          static bool was_right = true;
+          if (moving_right != was_right) {
+            was_right = moving_right;
+            lv_image_set_src(id(img_boat), moving_right
+                ? id(spr_boat_r)->get_lv_image_dsc()
+                : id(spr_boat_l)->get_lv_image_dsc());
+          }
+          // Waves drift along the waterline.
+          int drift = (int)(t * 10.0f) % 64;
+          lv_obj_t *waves[6] = { id(img_wave_0), id(img_wave_1), id(img_wave_2),
+                                 id(img_wave_3), id(img_wave_4), id(img_wave_5) };
+          for (int i = 0; i < 6; i++) {
+            lv_obj_set_pos(waves[i], i * 64 - drift, wl - 6);
+          }
+          // Cloud drifts slowly, wrapping around.
+          int cx = (int)fmodf(t * 3.0f, (float)(W + 48)) - 48;
+          lv_obj_set_pos(id(img_cloud), cx, 16);
+          // Corner label.
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%d%%", (int) pct);
+          lv_label_set_text(id(lbl_saver_pct), buf);

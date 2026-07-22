@@ -8,6 +8,11 @@ substitutions:
   claude_token: "SET_ME"
   # Seconds between usage polls; the footer shows the resulting req/day.
   poll_interval: "120"
+  # Small-screen sprites for the shared screensaver.
+  saver_boat_r_file: "assets/sprites/boat-small-r.png"
+  saver_boat_l_file: "assets/sprites/boat-small-l.png"
+  saver_boat_w: "40"
+  saver_boat_h: "26"
 
 esphome:
   name: ${name}
@@ -32,4 +37,6 @@ packages:
   hardware: !include ../packages/hardware-m5stickc-plus.yaml
   input: !include ../packages/input-joystick-hat.yaml
   poller: !include ../packages/usage-poller.yaml
+  idle: !include ../packages/idle.yaml
   ui: !include ../packages/ui-240x135-minimal.yaml
+  saver: !include ../packages/saver.yaml
