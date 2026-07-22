@@ -21,12 +21,6 @@ esphome:
   friendly_name: ${friendly_name}
   min_version: 2026.4.0
   on_boot:
-    # Panel logic rail first - a fixed-voltage AXP192 output is not
-    # switched on automatically; without it the panel stays dark no
-    # matter what the backlight does.
-    - priority: 700
-      then:
-        - output.turn_on: lcd_logic_power
     - priority: 600
       then:
         - light.turn_on:

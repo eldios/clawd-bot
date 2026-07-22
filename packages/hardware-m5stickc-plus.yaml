@@ -3,6 +3,16 @@
 # buttons) + M5Stack's official axp192 ESPHome component (rails; on the
 # StickC family LDO2 feeds the backlight, LDO3 the panel logic).
 
+# Rail bring-up lives with the hardware so every board variant gets it:
+# a fixed-voltage AXP192 output is not switched on automatically, and
+# without LDO3 the panel logic stays dark no matter what the backlight
+# does.
+esphome:
+  on_boot:
+    - priority: 700
+      then:
+        - output.turn_on: lcd_logic_power
+
 i2c:
   - id: bsp_bus
     sda: GPIO21
