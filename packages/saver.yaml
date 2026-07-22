@@ -33,6 +33,65 @@ image:
     type: RGB565
     transparency: alpha_channel
 
+# Sky decoration settings - HA config entities, persisted in NVS.
+switch:
+  - platform: template
+    id: saver_stars
+    name: "Saver Stars"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+  - platform: template
+    id: saver_moon
+    name: "Saver Moon"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+number:
+  - platform: template
+    id: saver_cloud_count
+    name: "Saver Clouds"
+    entity_category: config
+    min_value: 0
+    max_value: 16
+    step: 1
+    initial_value: 3
+    restore_value: true
+    optimistic: true
+  - platform: template
+    id: saver_star_count
+    name: "Saver Stars Count"
+    entity_category: config
+    min_value: 0
+    max_value: 16
+    step: 1
+    initial_value: 12
+    restore_value: true
+    optimistic: true
+  - platform: template
+    id: saver_cloud_speed_min
+    name: "Saver Cloud Speed Min"
+    entity_category: config
+    unit_of_measurement: "px/s"
+    min_value: 1
+    max_value: 30
+    step: 1
+    initial_value: 2
+    restore_value: true
+    optimistic: true
+  - platform: template
+    id: saver_cloud_speed_max
+    name: "Saver Cloud Speed Max"
+    entity_category: config
+    unit_of_measurement: "px/s"
+    min_value: 1
+    max_value: 30
+    step: 1
+    initial_value: 5
+    restore_value: true
+    optimistic: true
+
 script:
   - id: toggle_saver
     mode: single
@@ -50,6 +109,10 @@ lvgl:
   pages:
     - id: saver_page
       bg_color: 0x0A0A14
+      # Wave tiles intentionally overflow the right edge; without this the
+      # page turns scrollable and LVGL draws a drifting scrollbar.
+      scrollbar_mode: "off"
+      scrollable: false
       on_load:
         - lambda: "id(saver_active) = true;"
       on_unload:
@@ -66,6 +129,23 @@ lvgl:
             border_width: 0
             on_click:
               - script.execute: toggle_saver
+        # Stars: tiny dots, twinkling in the anim lambda, hidden underwater.
+        - obj: { id: star_0, x: 6%, y: 8%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_1, x: 16%, y: 22%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_2, x: 27%, y: 6%, width: 3, height: 3, radius: 1, bg_color: 0xD8D4C8, border_width: 0 }
+        - obj: { id: star_3, x: 38%, y: 30%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_4, x: 47%, y: 12%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_5, x: 57%, y: 26%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_6, x: 66%, y: 7%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_7, x: 74%, y: 34%, width: 3, height: 3, radius: 1, bg_color: 0xD8D4C8, border_width: 0 }
+        - obj: { id: star_8, x: 84%, y: 18%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_9, x: 92%, y: 40%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_10, x: 33%, y: 46%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_11, x: 62%, y: 44%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_12, x: 12%, y: 38%, width: 3, height: 3, radius: 1, bg_color: 0xD8D4C8, border_width: 0 }
+        - obj: { id: star_13, x: 52%, y: 42%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_14, x: 79%, y: 24%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
+        - obj: { id: star_15, x: 88%, y: 10%, width: 2, height: 2, radius: 1, bg_color: 0xB8B4A8, border_width: 0 }
         - image:
             id: img_moon
             src: spr_moon
@@ -73,11 +153,101 @@ lvgl:
             x: -16
             y: 10
         - image:
-            id: img_cloud
+            id: img_cloud_0
             src: spr_cloud
             align: TOP_LEFT
-            x: 20
+            x: 0
+            y: 4
+        - image:
+            id: img_cloud_1
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 33
+        - image:
+            id: img_cloud_2
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 6
+        - image:
+            id: img_cloud_3
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 35
+        - image:
+            id: img_cloud_4
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 8
+        - image:
+            id: img_cloud_5
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 37
+        - image:
+            id: img_cloud_6
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 10
+        - image:
+            id: img_cloud_7
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 39
+        - image:
+            id: img_cloud_8
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 12
+        - image:
+            id: img_cloud_9
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 41
+        - image:
+            id: img_cloud_10
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 14
+        - image:
+            id: img_cloud_11
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 43
+        - image:
+            id: img_cloud_12
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
             y: 16
+        - image:
+            id: img_cloud_13
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 45
+        - image:
+            id: img_cloud_14
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 18
+        - image:
+            id: img_cloud_15
+            src: spr_cloud
+            align: TOP_LEFT
+            x: 0
+            y: 47
         - obj:
             id: water_rect
             align: BOTTOM_MID
@@ -169,10 +339,40 @@ interval:
           for (int i = 0; i < 6; i++) {
             lv_obj_set_pos(waves[i], i * 64 - drift, wl - 6);
           }
-          // Cloud drifts slowly, wrapping around.
-          int cx = (int)fmodf(t * 3.0f, (float)(W + 48)) - 48;
-          lv_obj_set_pos(id(img_cloud), cx, 16);
-          // Corner label.
-          char buf[16];
-          snprintf(buf, sizeof(buf), "%d%%", (int) pct);
-          lv_label_set_text(id(lbl_saver_pct), buf);
+          // Clouds: count (0-16) and speed range come from HA config
+          // entities; per-cloud speed interpolates min..max, phases stagger.
+          lv_obj_t *clouds[16] = { id(img_cloud_0), id(img_cloud_1), id(img_cloud_2), id(img_cloud_3), id(img_cloud_4), id(img_cloud_5), id(img_cloud_6), id(img_cloud_7), id(img_cloud_8), id(img_cloud_9), id(img_cloud_10), id(img_cloud_11), id(img_cloud_12), id(img_cloud_13), id(img_cloud_14), id(img_cloud_15) };
+          const float coff[16] = { 0.0f, 83.0f, 166.0f, 249.0f, 332.0f, 47.0f, 130.0f, 213.0f, 296.0f, 11.0f, 94.0f, 177.0f, 260.0f, 343.0f, 58.0f, 141.0f };
+          const int   cy[16]   = { 4, 33, 6, 35, 8, 37, 10, 39, 12, 41, 14, 43, 16, 45, 18, 47 };
+          int n_clouds = (int) id(saver_cloud_count).state;
+          float smin = id(saver_cloud_speed_min).state;
+          float smax = id(saver_cloud_speed_max).state;
+          if (smax < smin) smax = smin;
+          for (int i = 0; i < 16; i++) {
+            if (i >= n_clouds) {
+              lv_obj_add_flag(clouds[i], LV_OBJ_FLAG_HIDDEN);
+              continue;
+            }
+            lv_obj_clear_flag(clouds[i], LV_OBJ_FLAG_HIDDEN);
+            float sp = (n_clouds > 1) ? smin + (smax - smin) * i / (float)(n_clouds - 1)
+                                      : (smin + smax) / 2.0f;
+            int cx = (int)fmodf(t * sp + coff[i], (float)(W + 48)) - 48;
+            lv_obj_set_pos(clouds[i], cx, cy[i]);
+          }
+          // Moon on/off.
+          if (id(saver_moon).state) lv_obj_clear_flag(id(img_moon), LV_OBJ_FLAG_HIDDEN);
+          else                      lv_obj_add_flag(id(img_moon), LV_OBJ_FLAG_HIDDEN);
+          // Stars twinkle (count + on/off from HA); drown when the sea rises.
+          lv_obj_t *stars[16] = { id(star_0), id(star_1), id(star_2), id(star_3), id(star_4), id(star_5), id(star_6), id(star_7), id(star_8), id(star_9), id(star_10), id(star_11), id(star_12), id(star_13), id(star_14), id(star_15) };
+          bool stars_on = id(saver_stars).state;
+          int n_stars = (int) id(saver_star_count).state;
+          for (int i = 0; i < 16; i++) {
+            int sy = lv_obj_get_y(stars[i]);
+            if (!stars_on || i >= n_stars || sy >= wl - 4) {
+              lv_obj_add_flag(stars[i], LV_OBJ_FLAG_HIDDEN);
+            } else {
+              lv_obj_clear_flag(stars[i], LV_OBJ_FLAG_HIDDEN);
+              lv_opa_t opa = (lv_opa_t)(150 + 100 * sinf(t * (0.7f + 0.13f * i) + i * 2.1f));
+              lv_obj_set_style_bg_opa(stars[i], opa, 0);
+            }
+          }
