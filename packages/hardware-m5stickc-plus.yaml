@@ -116,6 +116,9 @@ display:
     cs_pin: GPIO5
     dc_pin: GPIO23
     reset_pin: GPIO18
+    # 40MHz write clock - what M5GFX uses for this ST7789v2; the driver
+    # default is far lower and makes every flush visibly slow.
+    data_rate: 40MHz
     # Rotation lives in the LVGL block (LVGL forbids display-level rotation).
     update_interval: never
     auto_clear_enabled: false
