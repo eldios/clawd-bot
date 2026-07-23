@@ -11,11 +11,17 @@
 # setup until the chip is ready. The expander is driven directly - an
 # ESPHome gpio output would re-assert its OFF state during its own
 # setup at priority 800 and hold the chip in reset again.
+# The same early hook powers the AW88298 amp (AW9523B P0_2): the amp
+# does not ACK on I2C while unpowered, and the audio_dac component runs
+# its register init during setup - a gated amp came up FAILED and the
+# chime never played. It stays on (idle = soft mute, no hiss).
 esphome:
   on_boot:
     - priority: 850
       then:
         - lambda: |-
+            id(aw9523b_hub).pin_mode(2, gpio::FLAG_OUTPUT);
+            id(aw9523b_hub).digital_write(2, true);
             id(aw9523b_hub).pin_mode(0, gpio::FLAG_OUTPUT);
             id(aw9523b_hub).digital_write(0, false);
             delay(10);
@@ -38,9 +44,8 @@ external_components:
     refresh: 1d
 
 # Sound path for the shared chime package: AW88298 I2S smart amp, pins
-# and rates from M5Stack's cores3-satellite-base.yaml. The amp is kept
-# powered down (AW9523B P0_2) except while a chime plays - it does not
-# ACK on I2C while unpowered, so sound_begin must raise it first.
+# and rates from M5Stack's cores3-satellite-base.yaml. Amp power is
+# raised in the on_boot hook above, before the audio_dac setup.
 i2s_audio:
   id: i2s_audio_bus
   i2s_lrclk_pin: GPIO33
@@ -66,24 +71,13 @@ speaker:
 rtttl:
   id: chime_rtttl
   speaker: i2s_speaker
-  on_finished_playback:
-    - switch.turn_off: amp_power
-
-switch:
-  - platform: gpio
-    id: amp_power
-    internal: true
-    restore_mode: ALWAYS_OFF
-    pin:
-      aw9523b_id: aw9523b_hub
-      number: 2
 
 script:
+  # Chime hardware contract: the amp is already powered from boot.
   - id: sound_begin
     mode: single
     then:
-      - switch.turn_on: amp_power
-      - delay: 30ms
+      - lambda: return;
 
 axp2101:
   id: axp2101_pmu
