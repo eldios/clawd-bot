@@ -7,9 +7,12 @@
 # setup-tokens with 403 (tested 2026-07-21), so headers it is.
 
 substitutions:
-  # Where the clawd_poller component comes from. Local dev entry points
-  # override this with the in-repo "components" directory.
-  clawd_components_source: "github://eldios/clawd-bot@main"
+  # Where the clawd_poller component comes from. Pinned to the release
+  # tag matching clawd_bot_version: a new release is a new ref, so the
+  # component cache can never lag behind the packages (mixing a fresh
+  # package with a stale component clone breaks validation). Local dev
+  # entry points override this with the in-repo "components" directory.
+  clawd_components_source: "github://eldios/clawd-bot@v${clawd_bot_version}"
 
 external_components:
   - source: ${clawd_components_source}
