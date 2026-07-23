@@ -7,14 +7,14 @@
 #include <string>
 
 namespace esphome {
-namespace clawd_poller {
+namespace tokentide_poller {
 
 // Polls Anthropic's unified rate-limit headers with a minimal probe
 // request, from a dedicated FreeRTOS task so the main loop (LVGL, BLE,
 // everything) never blocks on TLS + HTTP. Results are handed back to the
 // main loop via a done flag polled in loop(), where the on_result
 // automation fires.
-class ClawdPoller : public Component {
+class TokentidePoller : public Component {
  public:
   void set_token(const std::string &token) { this->token_ = token; }
   void set_probe_model(const std::string &model) { this->model_ = model; }
@@ -70,7 +70,7 @@ class ClawdPoller : public Component {
 class PollResultTrigger
     : public Trigger<float, float, int64_t, int64_t, std::string, int> {
  public:
-  explicit PollResultTrigger(ClawdPoller *parent) {
+  explicit PollResultTrigger(TokentidePoller *parent) {
     parent->add_on_result_callback(
         [this](float u5, float u7, int64_t r5, int64_t r7, std::string status, int code) {
           this->trigger(u5, u7, r5, r7, status, code);
@@ -80,21 +80,21 @@ class PollResultTrigger
 
 class StatusResultTrigger : public Trigger<std::string> {
  public:
-  explicit StatusResultTrigger(ClawdPoller *parent) {
+  explicit StatusResultTrigger(TokentidePoller *parent) {
     parent->add_on_status_callback(
         [this](std::string indicator) { this->trigger(indicator); });
   }
 };
 
-template<typename... Ts> class PollAction : public Action<Ts...>, public Parented<ClawdPoller> {
+template<typename... Ts> class PollAction : public Action<Ts...>, public Parented<TokentidePoller> {
  public:
   void play(Ts... x) override { this->parent_->poll(); }
 };
 
-template<typename... Ts> class CheckStatusAction : public Action<Ts...>, public Parented<ClawdPoller> {
+template<typename... Ts> class CheckStatusAction : public Action<Ts...>, public Parented<TokentidePoller> {
  public:
   void play(Ts... x) override { this->parent_->check_status(); }
 };
 
-}  // namespace clawd_poller
+}  // namespace tokentide_poller
 }  // namespace esphome

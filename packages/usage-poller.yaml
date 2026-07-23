@@ -1,22 +1,22 @@
 # Usage engine: minimal probe POST to /v1/messages, unified rate-limit
 # headers read from the response. Runs in a dedicated FreeRTOS task (the
-# clawd_poller external component) so the UI never stutters during the
+# tokentide_poller external component) so the UI never stutters during the
 # request - ESPHome's http_request action would block the main loop for
 # the whole TLS+HTTP round trip.
 # The cleaner GET api/oauth/usage endpoint rejects long-lived
 # setup-tokens with 403 (tested 2026-07-21), so headers it is.
 
 substitutions:
-  # Where the clawd_poller component comes from. Pinned to the release
-  # tag matching clawd_bot_version: a new release is a new ref, so the
+  # Where the tokentide_poller component comes from. Pinned to the release
+  # tag matching tokentide_version: a new release is a new ref, so the
   # component cache can never lag behind the packages (mixing a fresh
   # package with a stale component clone breaks validation). Local dev
   # entry points override this with the in-repo "components" directory.
-  clawd_components_source: "github://eldios/clawd-bot@v${clawd_bot_version}"
+  tokentide_components_source: "github://eldios/tokentide@v${tokentide_version}"
 
 external_components:
-  - source: ${clawd_components_source}
-    components: [clawd_poller]
+  - source: ${tokentide_components_source}
+    components: [tokentide_poller]
     refresh: 1d
 
 globals:
@@ -68,7 +68,7 @@ text_sensor:
     entity_category: diagnostic
     update_interval: never
 
-clawd_poller:
+tokentide_poller:
   id: usage_probe
   token: ${claude_token}
   # Anthropic status page (statuspage.io indicator). "unknown" means the
@@ -119,7 +119,7 @@ script:
       - lambda: |-
           id(poll_in_flight) = true;
           lv_label_set_text(id(lbl_status), "${str_refreshing}");
-      - clawd_poller.poll: usage_probe
+      - tokentide_poller.poll: usage_probe
 
 interval:
   - interval: ${poll_interval}s
@@ -137,4 +137,4 @@ interval:
           condition:
             wifi.connected:
           then:
-            - clawd_poller.check_status: usage_probe
+            - tokentide_poller.check_status: usage_probe

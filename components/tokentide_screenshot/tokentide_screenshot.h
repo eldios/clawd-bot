@@ -6,14 +6,14 @@
 #include <esp_http_server.h>
 
 namespace esphome {
-namespace clawd_screenshot {
+namespace tokentide_screenshot {
 
 // Dev/QA helper: GET /screenshot on a tiny embedded HTTP server returns
 // the current LVGL screen as a 24-bit BMP. The snapshot itself runs in
 // loop() (LVGL is not thread-safe); the server task hands the request
 // over via a small state machine and streams the finished buffer.
 // LAN-only and unauthenticated - opt-in, not part of the default config.
-class ClawdScreenshot : public Component {
+class TokentideScreenshot : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
   void setup() override;
@@ -32,5 +32,5 @@ class ClawdScreenshot : public Component {
   httpd_handle_t server_{nullptr};
 };
 
-}  // namespace clawd_screenshot
+}  // namespace tokentide_screenshot
 }  // namespace esphome

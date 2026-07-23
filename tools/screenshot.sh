@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Grab the current LVGL screen from a device running the clawd_screenshot
+# Grab the current LVGL screen from a device running the tokentide_screenshot
 # component. Usage: tools/screenshot.sh <host-or-ip> [out.png]
 set -euo pipefail
 

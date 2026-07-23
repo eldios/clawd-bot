@@ -7,19 +7,19 @@ from esphome.const import CONF_ID, CONF_TRIGGER_ID
 CODEOWNERS = ["@eldios"]
 DEPENDENCIES = ["network"]
 
-clawd_poller_ns = cg.esphome_ns.namespace("clawd_poller")
-ClawdPoller = clawd_poller_ns.class_("ClawdPoller", cg.Component)
-PollResultTrigger = clawd_poller_ns.class_(
+tokentide_poller_ns = cg.esphome_ns.namespace("tokentide_poller")
+TokentidePoller = tokentide_poller_ns.class_("TokentidePoller", cg.Component)
+PollResultTrigger = tokentide_poller_ns.class_(
     "PollResultTrigger",
     automation.Trigger.template(
         cg.float_, cg.float_, cg.int64, cg.int64, cg.std_string, cg.int_
     ),
 )
-StatusResultTrigger = clawd_poller_ns.class_(
+StatusResultTrigger = tokentide_poller_ns.class_(
     "StatusResultTrigger", automation.Trigger.template(cg.std_string)
 )
-PollAction = clawd_poller_ns.class_("PollAction", automation.Action)
-CheckStatusAction = clawd_poller_ns.class_("CheckStatusAction", automation.Action)
+PollAction = tokentide_poller_ns.class_("PollAction", automation.Action)
+CheckStatusAction = tokentide_poller_ns.class_("CheckStatusAction", automation.Action)
 
 CONF_TOKEN = "token"
 CONF_PROBE_MODEL = "probe_model"
@@ -28,7 +28,7 @@ CONF_ON_ANTHROPIC_STATUS = "on_anthropic_status"
 
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(ClawdPoller),
+        cv.GenerateID(): cv.declare_id(TokentidePoller),
         cv.Required(CONF_TOKEN): cv.string,
         cv.Optional(CONF_PROBE_MODEL, default="claude-haiku-4-5-20251001"): cv.string,
         cv.Optional(CONF_ON_RESULT): automation.validate_automation(
@@ -67,22 +67,22 @@ async def to_code(config):
 
 
 @automation.register_action(
-    "clawd_poller.poll",
+    "tokentide_poller.poll",
     PollAction,
-    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(ClawdPoller)}),
+    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(TokentidePoller)}),
 )
-async def clawd_poller_poll_to_code(config, action_id, template_arg, args):
+async def tokentide_poller_poll_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
     return var
 
 
 @automation.register_action(
-    "clawd_poller.check_status",
+    "tokentide_poller.check_status",
     CheckStatusAction,
-    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(ClawdPoller)}),
+    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(TokentidePoller)}),
 )
-async def clawd_poller_check_status_to_code(config, action_id, template_arg, args):
+async def tokentide_poller_check_status_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
     return var

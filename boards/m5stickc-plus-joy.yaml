@@ -1,9 +1,9 @@
-# clawd-bot on the M5StickC Plus with the Joystick Hat: same minimal UI
+# tokentide on the M5StickC Plus with the Joystick Hat: same minimal UI
 # as the bare stick, plus joystick press = refresh and Y-axis = brightness.
 
 substitutions:
-  name: clawd-bot-stick
-  friendly_name: Clawd Bot Stick Joy
+  name: tokentide-stick
+  friendly_name: TokenTide Stick Joy
   # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
   claude_token: "SET_ME"
   # Seconds between usage polls; the footer shows the resulting req/day.

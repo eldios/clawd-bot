@@ -1,13 +1,13 @@
-# clawd-bot
+# TokenTide
 
 <p align="center">
-  <img src="assets/logo.png" alt="clawd-bot logo" width="256"/>
+  <img src="assets/logo.png" alt="TokenTide logo" width="256"/>
 </p>
 
-A standalone Claude Code usage monitor for the desk: no host software,
-no companion daemon. The device connects to your WiFi and polls Anthropic
-directly with a dedicated long-lived token, showing your usage on whatever
-screen it has - as readable as that screen allows.
+A standalone Claude Code usage monitor for the desk: the tide is your
+token budget. No host software, no companion daemon - the device
+connects to your WiFi and polls Anthropic directly with a dedicated
+long-lived token, showing your usage on whatever screen it has.
 
 Built as an ESPHome package with per-board implementations over a shared
 engine: adopt it from the ESPHome Builder (inside or outside Home
@@ -76,7 +76,7 @@ is designed for drive-in board additions.
 ## How it gets the data
 
 Anthropic exposes the unified rate-limit state as response headers on API
-calls. clawd-bot sends a minimal ~1-token probe request to `/v1/messages`
+calls. TokenTide sends a minimal ~1-token probe request to `/v1/messages`
 with your Claude Code OAuth token and reads
 `anthropic-ratelimit-unified-{5h,7d}-{utilization,reset}` from the response.
 At the default 120s interval that is ~720 tiny requests/day; the footer
@@ -113,8 +113,8 @@ never leaves the device except toward api.anthropic.com over TLS.
      # poll_interval: "120"   # optional override, seconds
 
    packages:
-     clawd_bot:
-       url: https://github.com/eldios/clawd-bot
+     tokentide:
+       url: https://github.com/eldios/tokentide
        ref: stable                            # latest release, auto-updating
        files: [boards/m5stack-cores3.yaml]   # pick your board from the table
        refresh: 1d
@@ -133,10 +133,10 @@ never leaves the device except toward api.anthropic.com over TLS.
 ## Quick start - CLI
 
 ```
-git clone https://github.com/eldios/clawd-bot
-cd clawd-bot
+git clone https://github.com/eldios/tokentide
+cd tokentide
 cp secrets.example.yaml secrets.yaml   # fill wifi + claude_token
-esphome run clawd-bot.yaml             # first time over USB, then OTA
+esphome run tokentide.yaml             # first time over USB, then OTA
 ```
 
 Nix users: `nix develop` provides `esphome` and `esptool`.
@@ -157,13 +157,13 @@ interval, and cleaning build files does not clear that cache. Set
 re-fetch, then restore `refresh: 1d`.
 
 **Compiler warnings from `mipi_spi.cpp` (`-Wempty-body`)**: these come
-from ESPHome's own display component, not from clawd-bot - harmless,
+from ESPHome's own display component, not from tokentide - harmless,
 safe to ignore.
 
 **Device reboots every ~15 minutes** (screen suddenly back to "waiting
 for data"): ESPHome's native API reboots the device when no Home
 Assistant client stays connected for `reboot_timeout` (default 15min).
-clawd-bot disables that failsafe since v0.0.5; on older versions add
+tokentide disables that failsafe since v0.0.5; on older versions add
 `reboot_timeout: 0s` under the `api:` block of your device YAML. If you
 DO use Home Assistant and see this, HA is not holding its connection to
 the device - re-add the ESPHome integration (see below).
@@ -182,7 +182,7 @@ away - no extra firmware work.
 **If the device does not appear automatically**: mDNS discovery does not
 cross VLANs, so on segmented networks (device on an IoT VLAN, HA
 elsewhere) you must add it manually - Settings > Devices & services >
-Add integration > ESPHome > host `clawd-bot.local` (or its IP), port
+Add integration > ESPHome > host `tokentide.local` (or its IP), port
 6053. OTA and logs from the ESPHome Builder work either way, since they
 use direct routing rather than discovery.
 
@@ -193,10 +193,10 @@ adding both blocks to your device YAML:
 
 ```yaml
 external_components:
-  - source: github://eldios/clawd-bot@main
-    components: [clawd_screenshot]
+  - source: github://eldios/tokentide@main
+    components: [tokentide_screenshot]
 
-clawd_screenshot:
+tokentide_screenshot:
 ```
 
 Then `tools/screenshot.sh <device-ip> out.png` grabs the live LVGL

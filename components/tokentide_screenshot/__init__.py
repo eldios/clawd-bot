@@ -5,12 +5,12 @@ from esphome.const import CONF_ID, CONF_PORT
 CODEOWNERS = ["@eldios"]
 DEPENDENCIES = ["network", "lvgl"]
 
-clawd_screenshot_ns = cg.esphome_ns.namespace("clawd_screenshot")
-ClawdScreenshot = clawd_screenshot_ns.class_("ClawdScreenshot", cg.Component)
+tokentide_screenshot_ns = cg.esphome_ns.namespace("tokentide_screenshot")
+TokentideScreenshot = tokentide_screenshot_ns.class_("TokentideScreenshot", cg.Component)
 
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(ClawdScreenshot),
+        cv.GenerateID(): cv.declare_id(TokentideScreenshot),
         cv.Optional(CONF_PORT, default=8081): cv.port,
     }
 ).extend(cv.COMPONENT_SCHEMA)

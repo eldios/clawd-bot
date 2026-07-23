@@ -13,7 +13,7 @@ text_sensor:
     id: fw_version
     name: "Firmware Version"
     entity_category: diagnostic
-    lambda: 'return {"${clawd_bot_version}"};'
+    lambda: 'return {"${tokentide_version}"};'
     update_interval: 6h
   - platform: template
     id: latest_release
@@ -32,9 +32,9 @@ script:
     mode: single
     then:
       - http_request.get:
-          url: https://api.github.com/repos/eldios/clawd-bot/releases/latest
+          url: https://api.github.com/repos/eldios/tokentide/releases/latest
           request_headers:
-            User-Agent: "clawd-bot/${clawd_bot_version}"
+            User-Agent: "tokentide/${tokentide_version}"
             Accept: "application/vnd.github+json"
           capture_response: true
           max_response_buffer_size: 8192
@@ -48,7 +48,7 @@ script:
                     std::string latest = tag;
                     if (!latest.empty() && latest[0] == 'v') latest.erase(0, 1);
                     id(latest_release).publish_state(latest);
-                    id(update_available).publish_state(latest != "${clawd_bot_version}");
+                    id(update_available).publish_state(latest != "${tokentide_version}");
                     return true;
                   });
 

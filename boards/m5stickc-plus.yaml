@@ -1,11 +1,11 @@
-# clawd-bot on the M5StickC Plus: ESP32-PICO-D4, 4MB flash, no PSRAM,
+# tokentide on the M5StickC Plus: ESP32-PICO-D4, 4MB flash, no PSRAM,
 # 1.14" 240x135 LCD, no touch. Minimal number-first UI; the front button
 # (BtnA) forces a refresh. Same shared usage engine and substitutions
 # contract as every other board.
 
 substitutions:
-  name: clawd-bot-stick
-  friendly_name: Clawd Bot Stick
+  name: tokentide-stick
+  friendly_name: TokenTide Stick
   # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
   claude_token: "SET_ME"
   # Seconds between usage polls; the footer shows the resulting req/day.

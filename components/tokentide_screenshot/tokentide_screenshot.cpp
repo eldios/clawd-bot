@@ -1,14 +1,14 @@
-#include "clawd_screenshot.h"
+#include "tokentide_screenshot.h"
 #include "esphome/core/log.h"
 
 #include <cstring>
 
 namespace esphome {
-namespace clawd_screenshot {
+namespace tokentide_screenshot {
 
-static const char *const TAG = "clawd_screenshot";
+static const char *const TAG = "tokentide_screenshot";
 
-void ClawdScreenshot::setup() {
+void TokentideScreenshot::setup() {
   httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
   cfg.server_port = this->port_;
   cfg.ctrl_port = this->port_ + 10000;
@@ -20,13 +20,13 @@ void ClawdScreenshot::setup() {
   httpd_uri_t uri{};
   uri.uri = "/screenshot";
   uri.method = HTTP_GET;
-  uri.handler = ClawdScreenshot::handler_;
+  uri.handler = TokentideScreenshot::handler_;
   uri.user_ctx = this;
   httpd_register_uri_handler(this->server_, &uri);
   ESP_LOGI(TAG, "Screenshot server listening on port %u, path /screenshot", this->port_);
 }
 
-void ClawdScreenshot::loop() {
+void TokentideScreenshot::loop() {
   if (this->state_ == REQUESTED) {
     this->buf_ = lv_snapshot_take(lv_scr_act(), LV_COLOR_FORMAT_RGB565);
     this->state_ = READY;
@@ -39,8 +39,8 @@ void ClawdScreenshot::loop() {
   }
 }
 
-esp_err_t ClawdScreenshot::handler_(httpd_req_t *req) {
-  auto *self = static_cast<ClawdScreenshot *>(req->user_ctx);
+esp_err_t TokentideScreenshot::handler_(httpd_req_t *req) {
+  auto *self = static_cast<TokentideScreenshot *>(req->user_ctx);
   if (self->state_ != IDLE) {
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "screenshot busy");
     return ESP_OK;
@@ -105,5 +105,5 @@ esp_err_t ClawdScreenshot::handler_(httpd_req_t *req) {
   return err;
 }
 
-}  // namespace clawd_screenshot
+}  // namespace tokentide_screenshot
 }  // namespace esphome

@@ -1,12 +1,12 @@
-# clawd-bot on the M5Stack CoreS3 (also the Stack-chan head unit).
+# tokentide on the M5Stack CoreS3 (also the Stack-chan head unit).
 # Remote-importable board entry: SoC config + CoreS3 hardware + the rich
 # 320x240 touch UI, on top of the shared usage engine.
 # No !secret here - secrets resolve in the importing user's config;
 # everything user-specific arrives via substitutions (see README).
 
 substitutions:
-  name: clawd-bot
-  friendly_name: Clawd Bot
+  name: tokentide
+  friendly_name: TokenTide
   # Long-lived Claude Code OAuth token (`claude setup-token`). Override me.
   claude_token: "SET_ME"
   # Seconds between usage polls. Each poll is one ~1-token probe request;

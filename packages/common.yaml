@@ -1,11 +1,11 @@
-# Board-agnostic services shared by every clawd-bot device.
+# Board-agnostic services shared by every tokentide device.
 
 # UI strings - English defaults. Override any of them in your own config,
 # or include one of the ready-made packs from lang/ (it, de, fr, es).
 substitutions:
   # Running firmware version - bumped as part of each release (see
   # CONTRIBUTING.md "Releasing").
-  clawd_bot_version: "0.0.5"
+  tokentide_version: "0.0.5"
   str_waiting: "waiting for data"
   str_refreshing: "updating..."
   str_refresh_btn: "Refresh"
@@ -21,11 +21,11 @@ substitutions:
 # ota/wifi/captive_portal are deliberately NOT declared here: the ESPHome
 # Builder wizard generates them in the user's device YAML, and a duplicate
 # ota entry fails validation (lists concatenate). CLI users get them from
-# the local entry points (clawd-bot*.yaml).
+# the local entry points (tokentide*.yaml).
 
 # api IS declared, but only to neutralize its reboot_timeout: with the
 # default (15min) a device with no Home Assistant client connected reboots
-# every 15 minutes by design. clawd-bot works standalone, so that failsafe
+# every 15 minutes by design. tokentide works standalone, so that failsafe
 # is wrong here. Dictionaries merge key-by-key with the user's config, so
 # the wizard's encryption key survives; users who want no native API at
 # all can put "api: !remove" in their device YAML.

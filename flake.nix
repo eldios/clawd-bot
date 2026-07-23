@@ -1,5 +1,5 @@
 {
-  description = "clawd-bot dev environment: ESPHome build/flash tooling";
+  description = "tokentide dev environment: ESPHome build/flash tooling";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

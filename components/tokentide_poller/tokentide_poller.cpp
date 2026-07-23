@@ -1,4 +1,4 @@
-#include "clawd_poller.h"
+#include "tokentide_poller.h"
 #include "esphome/core/log.h"
 
 #include "esp_crt_bundle.h"
@@ -10,9 +10,9 @@
 #include <ctime>
 
 namespace esphome {
-namespace clawd_poller {
+namespace tokentide_poller {
 
-static const char *const TAG = "clawd_poller";
+static const char *const TAG = "tokentide_poller";
 
 // Header values arrive either as a unix epoch or as RFC3339; normalize to
 // epoch without timegm (absent from newlib) via days-from-civil.
@@ -58,27 +58,27 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt) {
   return ESP_OK;
 }
 
-void ClawdPoller::poll() {
+void TokentidePoller::poll() {
   if (this->running_) {
     ESP_LOGD(TAG, "Poll already in flight, skipping");
     return;
   }
   this->running_ = true;
   // TLS handshake needs generous stack; the task is short-lived.
-  if (xTaskCreate(ClawdPoller::poll_task, "clawd_poll", 12288, this, 1, nullptr) != pdPASS) {
+  if (xTaskCreate(TokentidePoller::poll_task, "tokentide_poll", 12288, this, 1, nullptr) != pdPASS) {
     ESP_LOGW(TAG, "Failed to create poll task");
     this->running_ = false;
   }
 }
 
-void ClawdPoller::poll_task(void *param) {
-  auto *self = static_cast<ClawdPoller *>(param);
+void TokentidePoller::poll_task(void *param) {
+  auto *self = static_cast<TokentidePoller *>(param);
   self->run_probe_();
   self->done_ = true;
   vTaskDelete(nullptr);
 }
 
-void ClawdPoller::run_probe_() {
+void TokentidePoller::run_probe_() {
   ProbeHeaders headers;
 
   esp_http_client_config_t cfg{};
@@ -124,20 +124,20 @@ void ClawdPoller::run_probe_() {
   esp_http_client_cleanup(client);
 }
 
-void ClawdPoller::check_status() {
+void TokentidePoller::check_status() {
   if (this->status_running_) {
     ESP_LOGD(TAG, "Status check already in flight, skipping");
     return;
   }
   this->status_running_ = true;
-  if (xTaskCreate(ClawdPoller::status_task, "clawd_status", 12288, this, 1, nullptr) != pdPASS) {
+  if (xTaskCreate(TokentidePoller::status_task, "tokentide_stat", 12288, this, 1, nullptr) != pdPASS) {
     ESP_LOGW(TAG, "Failed to create status task");
     this->status_running_ = false;
   }
 }
 
-void ClawdPoller::status_task(void *param) {
-  auto *self = static_cast<ClawdPoller *>(param);
+void TokentidePoller::status_task(void *param) {
+  auto *self = static_cast<TokentidePoller *>(param);
   self->run_status_probe_();
   self->status_done_ = true;
   vTaskDelete(nullptr);
@@ -159,7 +159,7 @@ static esp_err_t status_event_handler(esp_http_client_event_t *evt) {
   return ESP_OK;
 }
 
-void ClawdPoller::run_status_probe_() {
+void TokentidePoller::run_status_probe_() {
   StatusBody body;
 
   esp_http_client_config_t cfg{};
@@ -192,7 +192,7 @@ void ClawdPoller::run_status_probe_() {
   esp_http_client_cleanup(client);
 }
 
-void ClawdPoller::loop() {
+void TokentidePoller::loop() {
   if (this->status_done_) {
     this->status_done_ = false;
     this->status_running_ = false;
@@ -209,5 +209,5 @@ void ClawdPoller::loop() {
                         this->result_status_, this->result_code_);
 }
 
-}  // namespace clawd_poller
+}  // namespace tokentide_poller
 }  // namespace esphome

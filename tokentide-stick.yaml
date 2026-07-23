@@ -4,7 +4,7 @@
 substitutions:
   claude_token: !secret claude_token
   # Local dev: in-repo component sources instead of GitHub.
-  clawd_components_source: "components"
+  tokentide_components_source: "components"
   # Local dev: repo sprites instead of the GitHub raw URLs.
   saver_sprite_base: "assets/sprites"
 
@@ -33,6 +33,6 @@ captive_portal:
 # Dev-only component, deliberately not part of the published package.
 external_components:
   - source: components
-    components: [clawd_screenshot]
+    components: [tokentide_screenshot]
 
-clawd_screenshot:
+tokentide_screenshot:

@@ -1,4 +1,4 @@
-# Contributing to clawd-bot
+# Contributing to tokentide
 
 Thanks for helping! A few ground rules keep this repo healthy.
 
@@ -7,12 +7,12 @@ Thanks for helping! A few ground rules keep this repo healthy.
 - Nix: `nix develop` gives you `esphome` and `esptool`.
 - Otherwise: any ESPHome >= 2026.4.0 install works (`pipx install esphome`).
 - `cp secrets.example.yaml secrets.yaml`, fill in WiFi and your
-  `claude setup-token` output, then `esphome run clawd-bot.yaml`.
+  `claude setup-token` output, then `esphome run tokentide.yaml`.
 
 ## Before opening a PR
 
-1. `esphome config clawd-bot.yaml` must pass (schema validation).
-2. `esphome compile clawd-bot.yaml` must pass.
+1. `esphome config tokentide.yaml` must pass (schema validation).
+2. `esphome compile tokentide.yaml` must pass.
 3. If you touched UI or hardware bits, test on a real CoreS3 and say so in
    the PR ("tested on hardware: yes/no" plus what you exercised).
 

@@ -1,4 +1,4 @@
-# clawd-bot task runner. Run `just` for the list; the dev shell
+# tokentide task runner. Run `just` for the list; the dev shell
 # (flake.nix) provides just, gum, gh, esphome.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
@@ -33,11 +33,11 @@ release:
 
     # The firmware must report the version being released, or every
     # device flags a phantom update forever.
-    fw="$(git show origin/main:packages/common.yaml | sed -n 's/^ *clawd_bot_version: "\(.*\)"/\1/p')"
-    [ "$fw" = "$ver" ] || die "clawd_bot_version on origin/main is '$fw', not '$ver' - bump packages/common.yaml and land it first"
+    fw="$(git show origin/main:packages/common.yaml | sed -n 's/^ *tokentide_version: "\(.*\)"/\1/p')"
+    [ "$fw" = "$ver" ] || die "tokentide_version on origin/main is '$fw', not '$ver' - bump packages/common.yaml and land it first"
 
     say "Tag message (edit, then Ctrl-D):"
-    msg="$(gum write --value "clawd-bot $tag" --width 72 --height 6)"
+    msg="$(gum write --value "tokentide $tag" --width 72 --height 6)"
     [ -n "$msg" ] || die "empty tag message"
 
     gum style --border rounded --padding "0 2" "tag: $tag (signed, on origin/main)" "stable -> $tag" "push: origin $tag stable" "gh release create $tag --generate-notes"
@@ -52,9 +52,9 @@ release:
 
 # Build every board variant (local dev entry points).
 build-all:
-    esphome compile clawd-bot.yaml
-    esphome compile clawd-bot-stick.yaml
-    esphome compile clawd-bot-stick-joy.yaml
+    esphome compile tokentide.yaml
+    esphome compile tokentide-stick.yaml
+    esphome compile tokentide-stick-joy.yaml
 
 # Grab a live screenshot: just screenshot <device-ip> [out.png]
 screenshot ip out="screenshot.png":

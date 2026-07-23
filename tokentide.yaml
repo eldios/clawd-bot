@@ -1,9 +1,11 @@
-# Local development entry point for the M5StickC Plus + Joystick Hat.
+# Local development entry point: wifi + token from secrets.yaml, board
+# picked here. End users adopting via the ESPHome builder import a file
+# from boards/ instead - see README.md.
 
 substitutions:
   claude_token: !secret claude_token
   # Local dev: in-repo component sources instead of GitHub.
-  clawd_components_source: "components"
+  tokentide_components_source: "components"
   # Local dev: repo sprites instead of the GitHub raw URLs.
   saver_sprite_base: "assets/sprites"
 
@@ -18,7 +20,8 @@ logger:
   level: DEBUG
 
 packages:
-  board: !include boards/m5stickc-plus-joy.yaml
+  board: !include boards/m5stack-cores3.yaml
+  # lang: !include lang/it.yaml
 
 api:
 
@@ -31,6 +34,6 @@ captive_portal:
 # Dev-only component, deliberately not part of the published package.
 external_components:
   - source: components
-    components: [clawd_screenshot]
+    components: [tokentide_screenshot]
 
-clawd_screenshot:
+tokentide_screenshot:
