@@ -14,12 +14,38 @@ engine: adopt it from the ESPHome Builder (inside or outside Home
 Assistant) with a dozen lines of YAML, update over-the-air by bumping a
 release tag, and pick the board entry that matches your hardware.
 
+### M5Stack CoreS3
+
 |  |  |
 | :---: | :---: |
-| ![CoreS3 screensaver](assets/photos/core_1.jpg) | ![CoreS3 main screen](assets/photos/core_2.jpg) |
+| <img src="assets/screenshots/cores3-saver.png" width="320" alt="CoreS3 screensaver screenshot"/> | <img src="assets/screenshots/cores3-main.png" width="320" alt="CoreS3 main screen screenshot"/> |
 | The crab sails a sea that IS your usage | Main screen: readable from across the room |
-| ![M5StickC Plus](assets/photos/stick_1.jpg) | ![M5StickC Plus with Joystick Hat](assets/photos/stick_2.jpg) |
-| M5StickC Plus, minimal UI | Same engine, joystick-hat variant |
+
+<details>
+<summary>Photos of the real device (yes, it actually looks like this)</summary>
+
+|  |  |
+| :---: | :---: |
+| ![CoreS3 screensaver photo](assets/photos/core_1.jpg) | ![CoreS3 main screen photo](assets/photos/core_2.jpg) |
+
+</details>
+
+### M5StickC Plus
+
+|  |  |
+| :---: | :---: |
+| <img src="assets/screenshots/stick-saver.png" width="360" alt="StickC Plus screensaver screenshot"/> | <img src="assets/screenshots/stick-main.png" width="360" alt="StickC Plus main screen screenshot"/> |
+| Same sea, pocket size | Minimal number-first UI |
+
+<details>
+<summary>Photos of the real device</summary>
+
+|  |  |
+| :---: | :---: |
+| ![M5StickC Plus photo](assets/photos/stick_1.jpg) | ![M5StickC Plus with Joystick Hat photo](assets/photos/stick_2.jpg) |
+| Bare | With the Joystick Hat |
+
+</details>
 
 ## What it shows
 
