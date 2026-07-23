@@ -188,9 +188,19 @@ use direct routing rather than discovery.
 
 ## Screenshot tool (optional)
 
-For UI development: add `clawd_screenshot:` to your device YAML and
-`tools/screenshot.sh <device-ip> out.png` grabs the live LVGL screen
-(HTTP on port 8081, LAN-only, unauthenticated - leave it out of
+For UI development only - not part of the published package. Opt in by
+adding both blocks to your device YAML:
+
+```yaml
+external_components:
+  - source: github://eldios/clawd-bot@main
+    components: [clawd_screenshot]
+
+clawd_screenshot:
+```
+
+Then `tools/screenshot.sh <device-ip> out.png` grabs the live LVGL
+screen (HTTP on port 8081, LAN-only, unauthenticated - leave it out of
 day-to-day configs).
 
 ## Roadmap

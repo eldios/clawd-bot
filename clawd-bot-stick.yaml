@@ -30,4 +30,9 @@ ota:
 captive_portal:
 
 # Dev QA: GET http://<ip>:8081/screenshot (see tools/screenshot.sh).
+# Dev-only component, deliberately not part of the published package.
+external_components:
+  - source: components
+    components: [clawd_screenshot]
+
 clawd_screenshot:

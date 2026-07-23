@@ -13,9 +13,7 @@ substitutions:
 
 external_components:
   - source: ${clawd_components_source}
-    # clawd_screenshot is fetched here too but only builds when a config
-    # opts in with a `clawd_screenshot:` block (see README).
-    components: [clawd_poller, clawd_screenshot]
+    components: [clawd_poller]
     refresh: 1d
 
 globals:
