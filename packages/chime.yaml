@@ -7,6 +7,12 @@
 # sound_begin script (amp power-up where needed, no-op elsewhere).
 # Boards without a sound path simply do not include this package.
 
+substitutions:
+  # First-boot default for the chime switch: "OFF" or "ON". Override it
+  # in your device YAML; the state saved via HA always wins afterwards.
+  # OFF by default - a device that makes noise unasked is rude.
+  chime_default: "OFF"
+
 globals:
   - id: chime_melody_idx
     type: int
@@ -19,9 +25,7 @@ switch:
     name: "Session Chime"
     entity_category: config
     optimistic: true
-    # A device that makes noise unasked is rude: opt-in via HA or the
-    # test button page. Saved state still wins across reboots.
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: RESTORE_DEFAULT_${chime_default}
 
 number:
   - platform: template
