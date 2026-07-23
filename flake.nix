@@ -14,6 +14,10 @@
           packages = [
             pkgs.esphome # build, flash (USB + OTA), logs
             pkgs.esptool # bare-metal chip probing when needed
+            pkgs.just # task runner (see justfile)
+            pkgs.gum # interactive prompts for `just release`
+            pkgs.gh # GitHub release creation
+            pkgs.imagemagick # tools/screenshot.sh BMP -> PNG
           ];
         };
       });
