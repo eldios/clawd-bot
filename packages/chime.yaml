@@ -19,7 +19,9 @@ switch:
     name: "Session Chime"
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    # A device that makes noise unasked is rude: opt-in via HA or the
+    # test button page. Saved state still wins across reboots.
+    restore_mode: RESTORE_DEFAULT_OFF
 
 number:
   - platform: template
